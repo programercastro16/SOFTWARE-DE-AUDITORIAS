@@ -3,10 +3,14 @@ const path = require('path');
 const fs = require('fs');
 const multer = require('multer');
 const PDFDocument = require('pdfkit');
-const db = require('./db');
+const { AuditRepository, EvidenceRepository, AuditItemRepository } = require('./repositories');
 const { requireRole } = require('./authRoutes');
 
 const router = express.Router();
+
+const auditRepository = new AuditRepository();
+const evidenceRepository = new EvidenceRepository();
+const auditItemRepository = new AuditItemRepository();
 
 const uploadsDir = path.join(__dirname, '..', 'uploads');
 if (!fs.existsSync(uploadsDir)) {

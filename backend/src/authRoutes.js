@@ -1,134 +1,169 @@
 const express = require('express');
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
-const db = require('./db');
+const { AuthService, UserService } = require('./services');
+const { AuthDTO, UserDTO } = require('./dto');
 
 const router = express.Router();
+const authService = new AuthService();
+const userService = new UserService();
 
-const JWT_SECRET = process.env.JWT_SECRET || 'super-secret-key';
 
-function createToken(user) {
-  return jwt.sign(
-    { id: user.id, email: user.email, role: user.role },
-    JWT_SECRET,
-    { expiresIn: '8h' }
-  );
-}
-
-router.post('/register-admin', (req, res) => {
-  const { name, email, password } = req.body;
-  if (!name || !email || !password) {
-    return res.status(400).json({ error: 'Faltan campos' });
+/**
+ * @swagger
+ * /auth/register-admin:
+ *   post:
+ *     summary: Registrar administrador
+ *     description: Crea un nuevo usuario con rol de administrador
+ *     tags: [Authentication]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/UserCreate'
+ *     responses:
+ *       201:
+ *         description: Administrador creado exitosamente
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/LoginResponse'
+ *       400:
+ *         $ref: '#/components/responses/ValidationError'
+ */
+router.post('/register-admin', async (req, res) => {
+  try {
+    const result = await authService.registerAdmin(req.body);
+    const response = AuthDTO.toRegisterResponse(result.user, result.token, result.expiresIn);
+    res.status(201).json(response);
+  } catch (error) {
+    console.error('Error en register-admin:', error);
+    const errorResponse = AuthDTO.toErrorResponse(error.message, 400);
+    res.status(400).json(errorResponse);
   }
-
-  const passwordHash = bcrypt.hashSync(password, 10);
-
-  const stmt = db.prepare(
-    'INSERT INTO users (name, email, password_hash, role) VALUES (?, ?, ?, ?)'
-  );
-
-  stmt.run(name, email, passwordHash, 'ADMIN', function (err) {
-    if (err) {
-      if (err.message.includes('UNIQUE')) {
-        return res.status(400).json({ error: 'Email ya registrado' });
-      }
-      return res.status(500).json({ error: 'Error al crear usuario' });
-    }
-
-    const user = {
-      id: this.lastID,
-      name,
-      email,
-      role: 'ADMIN',
-    };
-
-    const token = createToken(user);
-    res.status(201).json({ user, token });
-  });
 });
 
-router.get('/users', (req, res) => {
-  db.all(
-    'SELECT id, name, email, role, created_at FROM users WHERE role != "ADMIN" ORDER BY created_at DESC',
-    [],
-    (err, rows) => {
-      if (err) return res.status(500).json({ error: 'Error al listar usuarios' });
-      res.json(rows);
-    }
-  );
+/**
+ * @swagger
+ * /auth/users:
+ *   get:
+ *     summary: Listar usuarios
+ *     description: Obtiene la lista de usuarios (excluyendo administradores)
+ *     tags: [Authentication]
+ *     security:
+ *       - BearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Lista de usuarios obtenida exitosamente
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/User'
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
+ */
+router.get('/users', async (req, res) => {
+  try {
+    const users = await userService.getAllUsers('ADMIN');
+    const response = UserDTO.toListResponse(users);
+    res.json(response);
+  } catch (error) {
+    console.error('Error al listar usuarios:', error);
+    const errorResponse = AuthDTO.toErrorResponse(error.message, 500);
+    res.status(500).json(errorResponse);
+  }
 });
 
-router.post('/users', (req, res) => {
-  const { name, email, password, role } = req.body;
-  if (!name || !email || !password || !role) {
-    return res.status(400).json({ error: 'Faltan campos' });
+/**
+ * @swagger
+ * /auth/users:
+ *   post:
+ *     summary: Crear usuario
+ *     description: Crea un nuevo usuario con rol AUDITOR o CLIENTE
+ *     tags: [Authentication]
+ *     security:
+ *       - BearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/UserCreate'
+ *     responses:
+ *       201:
+ *         description: Usuario creado exitosamente
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/LoginResponse'
+ *       400:
+ *         $ref: '#/components/responses/ValidationError'
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
+ */
+router.post('/users', async (req, res) => {
+  try {
+    const user = await userService.createUser(req.body);
+    const response = AuthDTO.toRegisterResponse(user);
+    res.status(201).json(response);
+  } catch (error) {
+    console.error('Error al crear usuario:', error);
+    const errorResponse = AuthDTO.toErrorResponse(error.message, 400);
+    res.status(400).json(errorResponse);
   }
-
-  const allowedRoles = ['AUDITOR', 'CLIENTE'];
-  if (!allowedRoles.includes(role)) {
-    return res.status(400).json({ error: 'Rol no permitido' });
-  }
-
-  const passwordHash = bcrypt.hashSync(password, 10);
-
-  const stmt = db.prepare(
-    'INSERT INTO users (name, email, password_hash, role) VALUES (?, ?, ?, ?)'
-  );
-
-  stmt.run(name, email, passwordHash, role, function (err) {
-    if (err) {
-      if (err.message.includes('UNIQUE')) {
-        return res.status(400).json({ error: 'Email ya registrado' });
-      }
-      return res.status(500).json({ error: 'Error al crear usuario' });
-    }
-
-    const user = {
-      id: this.lastID,
-      name,
-      email,
-      role,
-    };
-
-    res.status(201).json({ user });
-  });
 });
 
-router.post('/login', (req, res) => {
-  const { email, password } = req.body;
-  if (!email || !password) {
-    return res.status(400).json({ error: 'Email y contraseña requeridos' });
+/**
+ * @swagger
+ * /auth/login:
+ *   post:
+ *     summary: Iniciar sesión
+ *     description: Autentica un usuario y devuelve un token JWT
+ *     tags: [Authentication]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/LoginRequest'
+ *     responses:
+ *       200:
+ *         description: Login exitoso
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/LoginResponse'
+ *       401:
+ *         description: Credenciales inválidas
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
+router.post('/login', async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    const result = await authService.login(email, password);
+    const response = AuthDTO.toLoginResponse(result.user, result.token, result.expiresIn);
+    res.json(response);
+  } catch (error) {
+    console.error('Error en login:', error);
+    const errorResponse = AuthDTO.toErrorResponse(error.message, 401);
+    res.status(401).json(errorResponse);
   }
-
-  db.get('SELECT * FROM users WHERE email = ?', [email], (err, row) => {
-    if (err) return res.status(500).json({ error: 'Error en la base de datos' });
-    if (!row) return res.status(401).json({ error: 'Credenciales inválidas' });
-
-    const valid = bcrypt.compareSync(password, row.password_hash);
-    if (!valid) return res.status(401).json({ error: 'Credenciales inválidas' });
-
-    const user = {
-      id: row.id,
-      name: row.name,
-      email: row.email,
-      role: row.role,
-    };
-
-    const token = createToken(user);
-    res.json({ user, token });
-  });
 });
 
 function authMiddleware(req, res, next) {
-  const header = req.headers.authorization;
-  if (!header) return res.status(401).json({ error: 'Token requerido' });
-
-  const [, token] = header.split(' ');
   try {
-    const payload = jwt.verify(token, JWT_SECRET);
+    const header = req.headers.authorization;
+    if (!header) return res.status(401).json({ error: 'Token requerido' });
+
+    const [, token] = header.split(' ');
+    const payload = authService.verifyToken(token);
     req.user = payload;
     next();
-  } catch (e) {
+  } catch (error) {
     return res.status(401).json({ error: 'Token inválido' });
   }
 }

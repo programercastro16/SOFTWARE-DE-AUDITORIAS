@@ -1,7 +1,58 @@
 import React, { useState, useEffect } from 'react';
 import { Routes, Route, useNavigate } from 'react-router-dom';
+import { ThemeProvider, createTheme } from '@mui/material/styles';
+import { CssBaseline } from '@mui/material';
+import MainLayout from './components/Layout/MainLayout';
+import Login from './pages/Login';
+import Dashboard from './pages/Dashboard';
+import Audits from './pages/Audits';
 
 const API_URL = 'http://localhost:4000';
+
+// Tema Material-UI
+const theme = createTheme({
+  palette: {
+    primary: {
+      main: '#1976d2',
+      dark: '#1565c0',
+      light: '#42a5f5',
+    },
+    secondary: {
+      main: '#dc004e',
+    },
+    background: {
+      default: '#f5f5f5',
+      paper: '#ffffff',
+    },
+  },
+  typography: {
+    fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
+    h4: {
+      fontWeight: 600,
+    },
+    h6: {
+      fontWeight: 600,
+    },
+  },
+  components: {
+    MuiCard: {
+      styleOverrides: {
+        root: {
+          boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+          borderRadius: 12,
+        },
+      },
+    },
+    MuiButton: {
+      styleOverrides: {
+        root: {
+          textTransform: 'none',
+          borderRadius: 8,
+        },
+      },
+    },
+  },
+});
 
 function computeConcept(percent) {
   if (percent >= 90) return 'Favorable';
@@ -427,7 +478,7 @@ function LoginPage({ onLogin }) {
   );
 }
 
-function Dashboard({ token, user, onLogout }) {
+function OldDashboard({ token, user, onLogout }) {
   const [audits, setAudits] = useState([]);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -899,51 +950,63 @@ function Dashboard({ token, user, onLogout }) {
         <ToastHost toasts={toasts} onRemove={(id) => setToasts((p) => p.filter((t) => t.id !== id))} />
 
         <footer className="app-footer">
-          © {new Date().getFullYear()} Creado por Thomas Castro Giraldo
+          {new Date().getFullYear()} Creado por Thomas Castro Giraldo
         </footer>
       </main>
     </div>
   );
 }
 
-function App() {
-  const navigate = useNavigate();
-  const [session, setSession] = useState(() => {
-    const raw = localStorage.getItem('audit_session');
-    return raw ? JSON.parse(raw) : null;
-  });
+export default function App() {
+  const [token, setToken] = useState(localStorage.getItem('token') || '');
+  const [user, setUser] = useState(null);
 
-  const handleLogin = (data) => {
-    localStorage.setItem('audit_session', JSON.stringify(data));
-    setSession(data);
-    navigate('/');
+  useEffect(() => {
+    if (token) {
+      try {
+        // Decodificar token JWT real para obtener datos del usuario
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        setUser(payload);
+      } catch {
+        setToken('');
+        localStorage.removeItem('token');
+      }
+    }
+  }, [token]);
+
+  const handleLogin = (userData, authToken) => {
+    setToken(authToken);
+    localStorage.setItem('token', authToken);
+    setUser(userData);
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('audit_session');
-    setSession(null);
-    navigate('/');
+    setToken('');
+    localStorage.removeItem('token');
+    setUser(null);
   };
 
-  if (!session) {
-    return <LoginPage onLogin={handleLogin} />;
+  if (!token || !user) {
+    return (
+      <ThemeProvider theme={theme}>
+        <CssBaseline />
+        <Login onLogin={handleLogin} />
+      </ThemeProvider>
+    );
   }
 
   return (
-    <Routes>
-      <Route
-        path="/"
-        element={
-          <Dashboard
-            token={session.token}
-            user={session.user}
-            onLogout={handleLogout}
-          />
-        }
-      />
-    </Routes>
+    <ThemeProvider theme={theme}>
+      <CssBaseline />
+      <MainLayout user={user} onLogout={handleLogout}>
+        <Routes>
+          <Route path="/" element={<Dashboard user={user} />} />
+          <Route path="/dashboard" element={<Dashboard user={user} />} />
+          <Route path="/audits" element={<Audits user={user} />} />
+          {/* Agregar más rutas aquí */}
+        </Routes>
+      </MainLayout>
+    </ThemeProvider>
   );
 }
-
-export default App;
 

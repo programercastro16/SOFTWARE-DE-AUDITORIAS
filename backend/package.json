@@ -5,7 +5,11 @@
   "main": "src/index.js",
   "scripts": {
     "dev": "nodemon src/index.js",
-    "start": "node src/index.js"
+    "start": "node src/index.js",
+    "seed": "node src/seeders/seed.js seed",
+    "seed:clear": "node src/seeders/seed.js clear",
+    "seed:reset": "node src/seeders/seed.js reset",
+    "seed:stats": "node src/seeders/seed.js stats"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
@@ -14,7 +18,9 @@
     "jsonwebtoken": "^9.0.2",
     "multer": "^1.4.5-lts.1",
     "pdfkit": "^0.13.0",
-    "sqlite3": "^5.1.7"
+    "sqlite3": "^5.1.7",
+    "swagger-jsdoc": "^6.2.8",
+    "swagger-ui-express": "^5.0.1"
   },
   "devDependencies": {
     "nodemon": "^3.0.3"
