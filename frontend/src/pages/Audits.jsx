@@ -23,20 +23,29 @@ import {
   Tooltip,
   Pagination,
   LinearProgress,
-  Fab
+  Fab,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
+  Alert,
+  Snackbar,
+  Fade,
+  Grow,
+  CircularProgress
 } from '@mui/material';
 import {
   Add,
   Search,
-  FilterList,
-  Visibility,
-  Edit,
   Delete,
   GetApp,
-  Assessment,
-  Refresh
+  Refresh,
+  ExpandMore
 } from '@mui/icons-material';
-import { useNavigate } from 'react-router-dom';
+import { auditService } from '../services/api';
 
 const Audits = ({ user }) => {
   const [audits, setAudits] = useState([]);
@@ -45,7 +54,14 @@ const Audits = ({ user }) => {
   const [statusFilter, setStatusFilter] = useState('');
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const navigate = useNavigate();
+  const [newAudit, setNewAudit] = useState({ title: '', description: '', scheduled_visit_date: '' });
+  const [openFill, setOpenFill] = useState(false);
+  const [selectedAudit, setSelectedAudit] = useState(null);
+  const [auditItems, setAuditItems] = useState([]);
+  const [expandedSection, setExpandedSection] = useState('1');
+  const [snack, setSnack] = useState({ open: false, type: 'success', message: '' });
+  const [saving, setSaving] = useState(false);
+  const [creating, setCreating] = useState(false);
 
   useEffect(() => {
     fetchAudits();
@@ -54,94 +70,10 @@ const Audits = ({ user }) => {
   const fetchAudits = async () => {
     try {
       setLoading(true);
-      
-      // Simulación de datos - en producción conectar con API real
-      const mockAudits = [
-        {
-          id: 1,
-          title: 'Auditoría Sanitaria - Restaurante El Buen Sabor',
-          description: 'Auditoría completa de condiciones sanitarias y manipulación de alimentos',
-          status: 'APROBADO',
-          score: 92,
-          created_by: 'Carlos Rodríguez',
-          created_by_email: 'carlos.auditor@auditorias.com',
-          created_at: '2024-01-20T10:30:00Z',
-          scheduled_visit_date: '2024-02-15',
-          items_count: 21,
-          evidences_count: 8,
-          progress: 100
-        },
-        {
-          id: 2,
-          title: 'Auditoría de Instalaciones - Empresa ABC S.A.',
-          description: 'Evaluación de instalaciones físicas y condiciones operativas',
-          status: 'ENVIADO',
-          score: 78,
-          created_by: 'María González',
-          created_by_email: 'maria.auditor@auditorias.com',
-          created_at: '2024-01-18T14:15:00Z',
-          scheduled_visit_date: '2024-03-20',
-          items_count: 21,
-          evidences_count: 5,
-          progress: 85
-        },
-        {
-          id: 3,
-          title: 'Auditoría Integral - Cafetería Central',
-          description: 'Auditoría integral de procesos y procedimientos',
-          status: 'BORRADOR',
-          score: null,
-          created_by: 'Carlos Rodríguez',
-          created_by_email: 'carlos.auditor@auditorias.com',
-          created_at: '2024-01-15T09:00:00Z',
-          scheduled_visit_date: '2024-04-10',
-          items_count: 21,
-          evidences_count: 2,
-          progress: 45
-        },
-        {
-          id: 4,
-          title: 'Auditoría de Saneamiento - Restaurante El Buen Sabor',
-          description: 'Verificación de sistemas de saneamiento y control de plagas',
-          status: 'RECHAZADO',
-          score: 45,
-          created_by: 'María González',
-          created_by_email: 'maria.auditor@auditorias.com',
-          created_at: '2024-01-10T11:30:00Z',
-          scheduled_visit_date: '2024-01-25',
-          items_count: 21,
-          evidences_count: 3,
-          progress: 70
-        },
-        {
-          id: 5,
-          title: 'Auditoría de Equipos - Empresa ABC S.A.',
-          description: 'Inspección de equipos y utensilios de cocina',
-          status: 'APROBADO',
-          score: 88,
-          created_by: 'Carlos Rodríguez',
-          created_by_email: 'carlos.auditor@auditorias.com',
-          created_at: '2024-01-08T16:45:00Z',
-          scheduled_visit_date: '2024-02-28',
-          items_count: 21,
-          evidences_count: 6,
-          progress: 100
-        }
-      ];
-
-      // Aplicar filtros
-      let filteredAudits = mockAudits;
-      
-      if (searchTerm) {
-        filteredAudits = filteredAudits.filter(audit =>
-          audit.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          audit.description.toLowerCase().includes(searchTerm.toLowerCase())
-        );
-      }
-      
-      if (statusFilter) {
-        filteredAudits = filteredAudits.filter(audit => audit.status === statusFilter);
-      }
+      const filteredAudits = await auditService.getAudits({
+        search: searchTerm || undefined,
+        status: statusFilter || undefined
+      });
 
       setAudits(filteredAudits);
       setTotalPages(Math.ceil(filteredAudits.length / 10));
@@ -150,6 +82,10 @@ const Audits = ({ user }) => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const showSnack = (type, message) => {
+    setSnack({ open: true, type, message });
   };
 
   const getStatusColor = (status) => {
@@ -179,34 +115,107 @@ const Audits = ({ user }) => {
     return labels[status] || status;
   };
 
-  const handleViewAudit = (auditId) => {
-    navigate(`/audits/${auditId}`);
-  };
-
-  const handleEditAudit = (auditId) => {
-    navigate(`/audits/${auditId}/edit`);
-  };
-
-  const handleCreateAudit = () => {
-    navigate('/audits/create');
+  const handleCreateAudit = async () => {
+    try {
+      setCreating(true);
+      await auditService.createAudit(newAudit);
+      setNewAudit({ title: '', description: '', scheduled_visit_date: '' });
+      fetchAudits();
+      showSnack('success', 'Auditoria creada correctamente.');
+    } catch (error) {
+      console.error('Error creating audit:', error);
+      showSnack('error', 'No se pudo crear la auditoria.');
+    } finally {
+      setCreating(false);
+    }
   };
 
   const handleDeleteAudit = async (auditId) => {
     if (window.confirm('¿Está seguro de que desea eliminar esta auditoría?')) {
       try {
-        // Lógica para eliminar auditoría
-        console.log('Eliminando auditoría:', auditId);
+        await auditService.deleteAudit(auditId);
         fetchAudits();
+        showSnack('success', 'Auditoria eliminada.');
       } catch (error) {
         console.error('Error deleting audit:', error);
+        showSnack('error', 'No se pudo eliminar la auditoria.');
       }
     }
   };
 
   const handleExportAudit = (auditId) => {
-    // Lógica para exportar auditoría
-    console.log('Exportando auditoría:', auditId);
+    window.open(`http://localhost:4000/audits/${auditId}/pdf`, '_blank');
   };
+
+  const handleOpenFill = async (audit) => {
+    try {
+      const items = await fetch(`http://localhost:4000/audits/${audit.id}/items`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+      }).then((r) => r.json());
+      setSelectedAudit(audit);
+      setAuditItems(items || []);
+      setOpenFill(true);
+      setExpandedSection('1');
+    } catch (error) {
+      console.error('Error loading items:', error);
+      showSnack('error', 'No se pudieron cargar los puntos de auditoria.');
+    }
+  };
+
+  const handleSaveFill = async () => {
+    if (!selectedAudit) return;
+    try {
+      setSaving(true);
+      await fetch(`http://localhost:4000/audits/${selectedAudit.id}/items`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({
+          items: auditItems.map((it) => ({
+            code: it.code,
+            score: Number(it.score) || 0,
+            observations: it.observations || ''
+          }))
+        })
+      });
+      setOpenFill(false);
+      setSelectedAudit(null);
+      setAuditItems([]);
+      fetchAudits();
+      showSnack('success', 'Formato diligenciado y guardado correctamente.');
+    } catch (error) {
+      console.error('Error saving items:', error);
+      showSnack('error', 'No se pudo guardar el diligenciamiento.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const sectionMap = {
+    '1': 'INSTALACIONES FISICAS',
+    '2': 'EQUIPOS Y UTENSILIOS',
+    '3': 'PERSONAL MANIPULADOR',
+    '4': 'REQUISITOS HIGIENICOS',
+    '5': 'SANEAMIENTO'
+  };
+
+  const groupedItems = auditItems.reduce((acc, item) => {
+    const section = String(item.code || '').split('.')[0] || '1';
+    if (!acc[section]) acc[section] = [];
+    acc[section].push(item);
+    return acc;
+  }, {});
+
+  const sectionScore = (section) => {
+    const list = groupedItems[section] || [];
+    return list.reduce((acc, it) => acc + (Number(it.score) || 0), 0);
+  };
+
+  const totalWeight = auditItems.reduce((acc, it) => acc + (Number(it.weight) || 0), 0);
+  const totalScore = auditItems.reduce((acc, it) => acc + (Number(it.score) || 0), 0);
+  const compliance = totalWeight ? ((totalScore / totalWeight) * 100) : 0;
 
   const filteredAudits = audits.filter((audit, index) => {
     const startIndex = (page - 1) * 10;
@@ -224,7 +233,7 @@ const Audits = ({ user }) => {
 
   return (
     <Box sx={{ flexGrow: 1 }}>
-      {/* Header */}
+      <Fade in timeout={450}>
       <Box sx={{ mb: 4, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <Box>
           <Typography variant="h4" component="h1" sx={{ fontWeight: 600, mb: 1 }}>
@@ -238,14 +247,33 @@ const Audits = ({ user }) => {
           variant="contained"
           startIcon={<Add />}
           onClick={handleCreateAudit}
-          disabled={!['ADMIN', 'AUDITOR'].includes(user?.role)}
+          disabled={!newAudit.title || !newAudit.scheduled_visit_date || !['ADMIN', 'AUDITOR'].includes(user?.role)}
         >
-          Nueva Auditoría
+          {creating ? <CircularProgress size={20} color="inherit" /> : 'Guardar Auditoria'}
         </Button>
       </Box>
+      </Fade>
 
-      {/* Filters */}
-      <Card sx={{ mb: 3 }}>
+      <Grow in timeout={500}>
+      <Card sx={{ mb: 3, transition: 'all 250ms ease', '&:hover': { transform: 'translateY(-2px)', boxShadow: 6 } }}>
+        <CardContent>
+          <Grid container spacing={2}>
+            <Grid item xs={12} md={4}>
+              <TextField fullWidth label="Título" value={newAudit.title} onChange={(e) => setNewAudit((p) => ({ ...p, title: e.target.value }))} />
+            </Grid>
+            <Grid item xs={12} md={4}>
+              <TextField fullWidth label="Descripción" value={newAudit.description} onChange={(e) => setNewAudit((p) => ({ ...p, description: e.target.value }))} />
+            </Grid>
+            <Grid item xs={12} md={4}>
+              <TextField fullWidth type="date" label="Fecha visita" InputLabelProps={{ shrink: true }} value={newAudit.scheduled_visit_date} onChange={(e) => setNewAudit((p) => ({ ...p, scheduled_visit_date: e.target.value }))} />
+            </Grid>
+          </Grid>
+        </CardContent>
+      </Card>
+      </Grow>
+
+      <Grow in timeout={650}>
+      <Card sx={{ mb: 3, transition: 'all 250ms ease', '&:hover': { transform: 'translateY(-2px)', boxShadow: 6 } }}>
         <CardContent>
           <Grid container spacing={2} alignItems="center">
             <Grid item xs={12} md={4}>
@@ -288,8 +316,9 @@ const Audits = ({ user }) => {
           </Grid>
         </CardContent>
       </Card>
+      </Grow>
 
-      {/* Stats Cards */}
+      <Grow in timeout={800}>
       <Grid container spacing={3} sx={{ mb: 3 }}>
         <Grid item xs={12} sm={6} md={3}>
           <Card>
@@ -340,9 +369,10 @@ const Audits = ({ user }) => {
           </Card>
         </Grid>
       </Grid>
+      </Grow>
 
-      {/* Audits Table */}
-      <Card>
+      <Grow in timeout={900}>
+      <Card sx={{ transition: 'all 250ms ease', '&:hover': { boxShadow: 6 } }}>
         <CardContent>
           <TableContainer component={Paper} variant="outlined">
             <Table>
@@ -421,25 +451,8 @@ const Audits = ({ user }) => {
                     </TableCell>
                     <TableCell align="center">
                       <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1 }}>
-                        <Tooltip title="Ver detalles">
-                          <IconButton
-                            size="small"
-                            onClick={() => handleViewAudit(audit.id)}
-                          >
-                            <Visibility />
-                          </IconButton>
-                        </Tooltip>
                         {['ADMIN', 'AUDITOR'].includes(user?.role) && (
                           <>
-                            <Tooltip title="Editar">
-                              <IconButton
-                                size="small"
-                                onClick={() => handleEditAudit(audit.id)}
-                                disabled={audit.status === 'APROBADO'}
-                              >
-                                <Edit />
-                              </IconButton>
-                            </Tooltip>
                             <Tooltip title="Exportar">
                               <IconButton
                                 size="small"
@@ -448,6 +461,9 @@ const Audits = ({ user }) => {
                                 <GetApp />
                               </IconButton>
                             </Tooltip>
+                            <Button size="small" variant="outlined" onClick={() => handleOpenFill(audit)}>
+                              Diligenciar
+                            </Button>
                             {user?.role === 'ADMIN' && (
                               <Tooltip title="Eliminar">
                                 <IconButton
@@ -483,8 +499,8 @@ const Audits = ({ user }) => {
           )}
         </CardContent>
       </Card>
+      </Grow>
 
-      {/* Floating Action Button */}
       {['ADMIN', 'AUDITOR'].includes(user?.role) && (
         <Fab
           color="primary"
@@ -495,11 +511,102 @@ const Audits = ({ user }) => {
             right: 24,
             display: { xs: 'flex', md: 'none' }
           }}
-          onClick={handleCreateAudit}
+          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
         >
           <Add />
         </Fab>
       )}
+
+      <Dialog open={openFill} onClose={() => setOpenFill(false)} maxWidth="lg" fullWidth>
+        <DialogTitle>
+          Diligenciar Formato EPS001 - {selectedAudit?.title}
+        </DialogTitle>
+        <DialogContent dividers>
+          <Box sx={{ mb: 2 }}>
+            <Alert severity="info">
+              Cumplimiento actual: <strong>{compliance.toFixed(1)}%</strong>. Diligencia por secciones 1 a 5, igual que el formato fisico.
+            </Alert>
+          </Box>
+
+          {Object.keys(sectionMap).map((section) => (
+            <Accordion
+              key={section}
+              expanded={expandedSection === section}
+              onChange={() => setExpandedSection(expandedSection === section ? '' : section)}
+              TransitionProps={{ timeout: 300 }}
+              sx={{ mb: 1 }}
+            >
+              <AccordionSummary expandIcon={<ExpandMore />}>
+                <Box sx={{ display: 'flex', width: '100%', justifyContent: 'space-between', alignItems: 'center', pr: 2 }}>
+                  <Typography sx={{ fontWeight: 700 }}>
+                    {section}. {sectionMap[section]}
+                  </Typography>
+                  <Chip label={`Calificacion del bloque: ${sectionScore(section).toFixed(1)}`} size="small" color="primary" variant="outlined" />
+                </Box>
+              </AccordionSummary>
+              <AccordionDetails>
+                <Grid container spacing={1} sx={{ mb: 1 }}>
+                  <Grid item xs={2}><strong>Codigo</strong></Grid>
+                  <Grid item xs={4}><strong>Aspecto</strong></Grid>
+                  <Grid item xs={2}><strong>Calificacion</strong></Grid>
+                  <Grid item xs={4}><strong>Observaciones / Hallazgos</strong></Grid>
+                </Grid>
+                {(groupedItems[section] || []).map((it) => {
+                  const idx = auditItems.findIndex((row) => row.code === it.code);
+                  return (
+                    <Fade in key={it.id || it.code} timeout={250}>
+                      <Grid container spacing={1} sx={{ mb: 1 }}>
+                        <Grid item xs={2}><Typography variant="body2">{it.code}</Typography></Grid>
+                        <Grid item xs={4}><Typography variant="body2">{it.label}</Typography></Grid>
+                        <Grid item xs={2}>
+                          <TextField
+                            type="number"
+                            size="small"
+                            fullWidth
+                            inputProps={{ min: 0, max: it.weight, step: 0.5 }}
+                            value={it.score ?? 0}
+                            onChange={(e) => {
+                              const value = e.target.value;
+                              setAuditItems((prev) => prev.map((row, i) => i === idx ? { ...row, score: value } : row));
+                            }}
+                          />
+                        </Grid>
+                        <Grid item xs={4}>
+                          <TextField
+                            size="small"
+                            fullWidth
+                            value={it.observations || ''}
+                            onChange={(e) => {
+                              const value = e.target.value;
+                              setAuditItems((prev) => prev.map((row, i) => i === idx ? { ...row, observations: value } : row));
+                            }}
+                          />
+                        </Grid>
+                      </Grid>
+                    </Fade>
+                  );
+                })}
+              </AccordionDetails>
+            </Accordion>
+          ))}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpenFill(false)}>Cancelar</Button>
+          <Button variant="contained" onClick={handleSaveFill} disabled={saving}>
+            {saving ? <CircularProgress size={20} color="inherit" /> : 'Guardar diligenciamiento'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Snackbar
+        open={snack.open}
+        autoHideDuration={2600}
+        onClose={() => setSnack((prev) => ({ ...prev, open: false }))}
+      >
+        <Alert severity={snack.type} variant="filled" onClose={() => setSnack((prev) => ({ ...prev, open: false }))}>
+          {snack.message}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 };

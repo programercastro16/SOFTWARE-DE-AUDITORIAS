@@ -6,6 +6,10 @@ import MainLayout from './components/Layout/MainLayout';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import Audits from './pages/Audits';
+import Evidences from './pages/Evidences';
+import Users from './pages/Users';
+import Reports from './pages/Reports';
+import Settings from './pages/Settings';
 
 const API_URL = 'http://localhost:4000';
 
@@ -1003,7 +1007,11 @@ export default function App() {
           <Route path="/" element={<Dashboard user={user} />} />
           <Route path="/dashboard" element={<Dashboard user={user} />} />
           <Route path="/audits" element={<Audits user={user} />} />
-          {/* Agregar más rutas aquí */}
+          <Route path="/audits/create" element={<Audits user={user} />} />
+          <Route path="/evidences" element={<Evidences user={user} />} />
+          <Route path="/users" element={<Users user={user} />} />
+          <Route path="/reports" element={<Reports user={user} />} />
+          <Route path="/settings" element={<Settings user={user} />} />
         </Routes>
       </MainLayout>
     </ThemeProvider>

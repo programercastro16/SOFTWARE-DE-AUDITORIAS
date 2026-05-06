@@ -65,7 +65,7 @@ router.post('/register-admin', async (req, res) => {
  */
 router.get('/users', async (req, res) => {
   try {
-    const users = await userService.getAllUsers('ADMIN');
+    const users = await userService.getAllUsers(null);
     const response = UserDTO.toListResponse(users);
     res.json(response);
   } catch (error) {

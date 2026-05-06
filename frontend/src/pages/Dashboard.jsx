@@ -1,34 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import {
-  Grid,
-  Card,
-  CardContent,
-  Typography,
-  Box,
-  LinearProgress,
-  Chip,
-  Button,
-  Paper,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  IconButton,
-  Tooltip
-} from '@mui/material';
-import {
-  TrendingUp,
-  TrendingDown,
-  Assessment,
-  People,
-  Assignment,
-  Visibility,
-  Launch,
-  Refresh
-} from '@mui/icons-material';
+import { Grid, Card, CardContent, Typography, Box, LinearProgress, Chip, Button, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, IconButton, Tooltip } from '@mui/material';
+import { Assessment, People, Assignment, Visibility, Launch, Refresh } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
+import { auditService, authService } from '../services/api';
 
 const Dashboard = ({ user }) => {
   const [stats, setStats] = useState(null);
@@ -43,52 +17,23 @@ const Dashboard = ({ user }) => {
   const fetchDashboardData = async () => {
     try {
       setLoading(true);
-      
-      // Simulación de datos - en producción conectar con API real
-      const mockStats = {
-        totalAudits: 25,
-        auditsByStatus: [
-          { status: 'APROBADO', count: 15, trend: 'up' },
-          { status: 'ENVIADO', count: 8, trend: 'stable' },
-          { status: 'BORRADOR', count: 2, trend: 'down' }
-        ],
-        usersCount: 6,
-        evidencesCount: 45,
-        monthlyGrowth: 12.5
-      };
-
-      const mockRecentAudits = [
-        {
-          id: 1,
-          title: 'Auditoría Sanitaria - Restaurante El Buen Sabor',
-          status: 'APROBADO',
-          score: 92,
-          created_by: 'Carlos Rodríguez',
-          created_at: '2024-01-20',
-          progress: 100
-        },
-        {
-          id: 2,
-          title: 'Auditoría de Instalaciones - Empresa ABC S.A.',
-          status: 'ENVIADO',
-          score: 78,
-          created_by: 'María González',
-          created_at: '2024-01-18',
-          progress: 85
-        },
-        {
-          id: 3,
-          title: 'Auditoría Integral - Cafetería Central',
-          status: 'BORRADOR',
-          score: null,
-          created_by: 'Carlos Rodríguez',
-          created_at: '2024-01-15',
-          progress: 45
-        }
-      ];
-
-      setStats(mockStats);
-      setRecentAudits(mockRecentAudits);
+      const [audits, users] = await Promise.all([
+        auditService.getAudits(),
+        user?.role === 'ADMIN' ? authService.getUsers() : Promise.resolve([])
+      ]);
+      const byStatus = ['APROBADO', 'ENVIADO', 'BORRADOR', 'RECHAZADO'].map((status) => ({
+        status,
+        count: audits.filter((a) => a.status === status).length
+      }));
+      const evidenceCount = audits.reduce((acc, a) => acc + (a.evidences_count || 0), 0);
+      setStats({
+        totalAudits: audits.length,
+        auditsByStatus: byStatus,
+        usersCount: users.length,
+        evidencesCount: evidenceCount,
+        monthlyGrowth: 0
+      });
+      setRecentAudits(audits.slice(0, 8));
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
     } finally {
@@ -113,7 +58,7 @@ const Dashboard = ({ user }) => {
     return 'error';
   };
 
-  const StatCard = ({ title, value, subtitle, icon, color, trend }) => (
+  const StatCard = ({ title, value, subtitle, icon, color }) => (
     <Card sx={{ height: '100%', position: 'relative', overflow: 'visible' }}>
       <CardContent>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
@@ -142,18 +87,6 @@ const Dashboard = ({ user }) => {
             {icon}
           </Box>
         </Box>
-        {trend && (
-          <Box sx={{ display: 'flex', alignItems: 'center', mt: 2 }}>
-            {trend === 'up' ? (
-              <TrendingUp sx={{ color: 'success.main', fontSize: 16, mr: 0.5 }} />
-            ) : trend === 'down' ? (
-              <TrendingDown sx={{ color: 'error.main', fontSize: 16, mr: 0.5 }} />
-            ) : null}
-            <Typography variant="caption" color="textSecondary">
-              {trend === 'up' ? '+12%' : trend === 'down' ? '-5%' : 'Estable'}
-            </Typography>
-          </Box>
-        )}
       </CardContent>
     </Card>
   );
@@ -196,7 +129,6 @@ const Dashboard = ({ user }) => {
             subtitle="Este mes"
             icon={<Assessment />}
             color="primary"
-            trend="up"
           />
         </Grid>
         <Grid item xs={12} sm={6} md={3}>
@@ -206,7 +138,6 @@ const Dashboard = ({ user }) => {
             subtitle="Registrados"
             icon={<People />}
             color="secondary"
-            trend="stable"
           />
         </Grid>
         <Grid item xs={12} sm={6} md={3}>
@@ -216,22 +147,19 @@ const Dashboard = ({ user }) => {
             subtitle="Archivos subidos"
             icon={<Assignment />}
             color="info"
-            trend="up"
           />
         </Grid>
         <Grid item xs={12} sm={6} md={3}>
           <StatCard
             title="Crecimiento"
-            value={`${stats?.monthlyGrowth || 0}%`}
-            subtitle="Mensual"
-            icon={<TrendingUp />}
+            value={stats?.auditsByStatus?.find((s) => s.status === 'APROBADO')?.count || 0}
+            subtitle="Aprobadas"
+            icon={<Assessment />}
             color="success"
-            trend="up"
           />
         </Grid>
       </Grid>
 
-      {/* Status Overview */}
       <Grid container spacing={3} sx={{ mb: 4 }}>
         <Grid item xs={12} md={8}>
           <Card>
@@ -241,7 +169,7 @@ const Dashboard = ({ user }) => {
               </Typography>
               <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
                 {stats?.auditsByStatus?.map((status) => (
-                  <Box key={status.status} sx={{ flex: 1, minWidth: 150 }}>
+                  <Box key={status.status} sx={{ flex: 1, minWidth: 120 }}>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
                       <Typography variant="body2">{status.status}</Typography>
                       <Typography variant="body2" sx={{ fontWeight: 600 }}>
@@ -304,7 +232,6 @@ const Dashboard = ({ user }) => {
         </Grid>
       </Grid>
 
-      {/* Recent Audits Table */}
       <Card>
         <CardContent>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
@@ -374,7 +301,7 @@ const Dashboard = ({ user }) => {
                       <Tooltip title="Ver detalles">
                         <IconButton
                           size="small"
-                          onClick={() => navigate(`/audits/${audit.id}`)}
+                          onClick={() => navigate('/audits')}
                         >
                           <Visibility />
                         </IconButton>

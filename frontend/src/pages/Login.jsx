@@ -65,7 +65,7 @@ const Login = ({ onLogin }) => {
         onLogin(data.user, data.token);
         navigate('/dashboard');
       } else {
-        setError(data.error || 'Credenciales inválidas. Por favor, verifique su email y contraseña.');
+        setError(data.message || data.error || 'Credenciales inválidas. Por favor, verifique su email y contraseña.');
       }
     } catch (error) {
       console.error('Error de conexión:', error);

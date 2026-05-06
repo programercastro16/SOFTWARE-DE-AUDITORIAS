@@ -23,6 +23,9 @@ db.serialize(() => {
     )
   `);
 
+  // Backward-compatible migration for existing databases.
+  db.run('ALTER TABLE users ADD COLUMN last_login TEXT', () => {});
+
   db.run(`
     CREATE TABLE IF NOT EXISTS audits (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
