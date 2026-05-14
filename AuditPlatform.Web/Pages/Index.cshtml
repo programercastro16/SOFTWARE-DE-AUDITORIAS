@@ -1,30 +1,107 @@
 @page
 @model IndexModel
+@inject Microsoft.Extensions.Configuration.IConfiguration Configuration
 @{
     ViewData["Title"] = "Inicio";
+    var apiBase = (Configuration["ApiBaseUrl"] ?? "http://localhost:5141").TrimEnd('/');
 }
 
-<section class="hero-panel text-center text-lg-start">
-    <div class="row align-items-center g-4">
-        <div class="col-lg-7">
-            <p class="small text-uppercase mb-2" style="letter-spacing: .2em; color: var(--ap-muted);">Plataforma de cumplimiento</p>
-            <h1 class="display-5 mb-3">Auditorías con <span class="text-gradient">claridad total</span></h1>
-            <p class="lead mb-4">Unifica evidencias, roles y seguimiento en una API .NET y una experiencia web viva pensada para tu equipo.</p>
-            <div class="d-flex flex-wrap gap-2 justify-content-center justify-content-lg-start">
-                <a class="btn btn-lg btn-gradient px-4" asp-page="/Login">Entrar al workspace</a>
-                <a class="btn btn-lg btn-glow px-4" asp-page="/Dashboard">Ver panel</a>
-            </div>
+<section class="home-hero mb-4 mb-lg-5">
+    <div class="row align-items-end g-4">
+        <div class="col-lg-8">
+            <p class="home-eyebrow mb-2">Centro de trabajo</p>
+            <h1 class="home-title mb-3">Todo lo que necesitas para <span class="text-gradient">auditar</span>, desde aquí</h1>
+            <p class="home-lead mb-0">Crea visitas, asigna auditores, rellena el checklist y revisa el resumen sin ir sección por sección en el menú.</p>
         </div>
-        <div class="col-lg-5">
-            <div class="glass-card p-4 text-start">
-                <h3 class="h5 text-white mb-3">En tiempo real</h3>
-                <ul class="list-unstyled mb-0 small" style="color: var(--ap-muted);">
-                    <li class="mb-2">✦ Métricas y estados desde la API</li>
-                    <li class="mb-2">✦ JWT compatible con Postman</li>
-                    <li class="mb-2">✦ Interfaz oscura con microinteracciones</li>
-                    <li>✦ Swagger para probar cada endpoint</li>
-                </ul>
+        <div class="col-lg-4 text-lg-end">
+            <div class="home-session-pill" id="home-session">
+                <span class="home-session-dot" aria-hidden="true"></span>
+                <span id="home-session-text">Comprobando sesión…</span>
             </div>
         </div>
     </div>
 </section>
+
+<div class="home-hub-grid mb-4">
+    <a asp-page="/Auditorias/Nueva" class="home-hub-card home-hub-card--featured home-hub-enter" id="home-card-nueva" style="animation-delay: 0.02s">
+        <span class="home-hub-icon" aria-hidden="true">＋</span>
+        <div class="home-hub-body">
+            <h2 class="home-hub-title">Nueva auditoría</h2>
+            <p class="home-hub-desc">Título, sede, fecha, comentarios y checklist tipo CUZCO. Los administradores pueden asignar a un auditor al crear.</p>
+            <span class="home-hub-cta">Abrir formulario <span class="home-hub-arrow">→</span></span>
+        </div>
+    </a>
+
+    <a asp-page="/Auditorias/Index" class="home-hub-card home-hub-enter" style="animation-delay: 0.08s">
+        <span class="home-hub-icon home-hub-icon--soft" aria-hidden="true">≡</span>
+        <div class="home-hub-body">
+            <h2 class="home-hub-title">Mis auditorías</h2>
+            <p class="home-hub-desc">Listado filtrado por tu rol: las que creaste o te asignaron.</p>
+            <span class="home-hub-cta">Ver listado <span class="home-hub-arrow">→</span></span>
+        </div>
+    </a>
+
+    <a asp-page="/Dashboard" class="home-hub-card home-hub-enter" style="animation-delay: 0.14s">
+        <span class="home-hub-icon home-hub-icon--soft" aria-hidden="true">◆</span>
+        <div class="home-hub-body">
+            <h2 class="home-hub-title">Resumen operativo</h2>
+            <p class="home-hub-desc">Métricas en vivo desde la API (admin y auditor).</p>
+            <span class="home-hub-cta">Ir al panel <span class="home-hub-arrow">→</span></span>
+        </div>
+    </a>
+
+    <a href="@($"{apiBase}/swagger")" target="_blank" rel="noopener noreferrer" class="home-hub-card home-hub-card--outline home-hub-enter" style="animation-delay: 0.2s">
+        <span class="home-hub-icon home-hub-icon--muted" aria-hidden="true">{}</span>
+        <div class="home-hub-body">
+            <h2 class="home-hub-title">API · Swagger</h2>
+            <p class="home-hub-desc">Prueba endpoints con el mismo token que en el navegador.</p>
+            <span class="home-hub-cta">Abrir documentación <span class="home-hub-arrow">↗</span></span>
+        </div>
+    </a>
+
+    <a asp-page="/Login" class="home-hub-card home-hub-card--accent home-hub-enter" id="home-card-acceso" style="animation-delay: 0.26s">
+        <span class="home-hub-icon" aria-hidden="true">⎆</span>
+        <div class="home-hub-body">
+            <h2 class="home-hub-title" id="home-card-acceso-title">Acceso</h2>
+            <p class="home-hub-desc" id="home-card-acceso-desc">Inicia sesión para guardar auditorías y sincronizar con la API.</p>
+            <span class="home-hub-cta" id="home-card-acceso-cta">Ir a login <span class="home-hub-arrow">→</span></span>
+        </div>
+    </a>
+</div>
+
+<section class="home-strip glass-card p-4 p-md-5 mb-4">
+    <div class="row g-4 align-items-center">
+        <div class="col-md-7">
+            <h3 class="h5 text-white mb-2">Flujo recomendado</h3>
+            <ol class="home-flow-list mb-0 small">
+                <li><strong>Acceso</strong> con tu usuario (JWT se guarda en el navegador).</li>
+                <li><strong>Nueva auditoría</strong> con los datos de la visita.</li>
+                <li><strong>Abrir checklist</strong> desde el listado para calificar cada aspecto.</li>
+                <li><strong>Panel</strong> para ver totales cuando quieras.</li>
+            </ol>
+        </div>
+        <div class="col-md-5 text-md-end">
+            <p class="small mb-2" style="color: var(--ap-muted);">API configurada en</p>
+            <code class="home-code">@apiBase</code>
+        </div>
+    </div>
+</section>
+
+@section Scripts {
+    <script>
+        (function () {
+            if (sessionStorage.getItem('audit_access_token')) {
+                window.location.replace('/Dashboard');
+                return;
+            }
+            var sessionEl = document.getElementById('home-session');
+            var sessionText = document.getElementById('home-session-text');
+            var cardNueva = document.getElementById('home-card-nueva');
+            sessionText.textContent = 'Sin sesión · entra para trabajar en el panel';
+            sessionEl.classList.add('home-session-pill--off');
+            cardNueva.setAttribute('href', '/Login');
+            cardNueva.querySelector('.home-hub-desc').textContent = 'Inicia sesión: el panel principal concentra todo según tu rol (admin o auditor).';
+            cardNueva.querySelector('.home-hub-cta').innerHTML = 'Ir a acceso <span class="home-hub-arrow">→</span>';
+        })();
+    </script>
+}

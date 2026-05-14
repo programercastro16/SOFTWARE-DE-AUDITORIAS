@@ -29,10 +29,10 @@
                             <a class="nav-link" asp-area="" asp-page="/Login">Acceso</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" asp-area="" asp-page="/Dashboard">Panel</a>
+                            <a class="nav-link" asp-area="" asp-page="/Auditorias/Index">Auditorías</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" asp-area="" asp-page="/Audits/Index">Auditorías</a>
+                            <a class="nav-link" asp-area="" asp-page="/Dashboard">Panel</a>
                         </li>
                     </ul>
                     <div class="d-flex align-items-center gap-2 ms-sm-3 mt-2 mt-sm-0">
@@ -73,6 +73,7 @@
                     sessionStorage.removeItem('audit_access_token');
                     sessionStorage.removeItem('audit_user_name');
                     sessionStorage.removeItem('audit_user_role');
+                    sessionStorage.removeItem('audit_user_id');
                     window.location.href = '/Login';
                 });
             }

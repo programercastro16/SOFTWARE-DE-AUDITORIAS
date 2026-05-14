@@ -1,0 +1,95 @@
+@page
+@inject Microsoft.Extensions.Configuration.IConfiguration Configuration
+@{
+    ViewData["Title"] = "Auditorías";
+    var apiBase = (Configuration["ApiBaseUrl"] ?? "http://localhost:5141").TrimEnd('/');
+}
+
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+    <div>
+        <h1 class="h3 mb-1 text-white">Mis auditorías</h1>
+        <p class="small mb-0" style="color: var(--ap-muted);">Listado según tu rol: el admin ve todo; el auditor solo las que creó o le asignaron.</p>
+    </div>
+    <div class="d-flex flex-wrap gap-2">
+        <a class="btn btn-gradient px-4" asp-page="/Auditorias/Nueva" data-audit-new>+ Nueva auditoría</a>
+        <button type="button" class="btn btn-glow" id="btn-reload">↻ Actualizar</button>
+    </div>
+</div>
+
+<div id="audit-alert" class="alert d-none mb-3 border-0"></div>
+<div id="audit-list" class="row g-3"></div>
+
+@section Scripts {
+    <script>
+        (function () {
+            const API = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(apiBase));
+            const token = sessionStorage.getItem('audit_access_token');
+            const role = sessionStorage.getItem('audit_user_role');
+            const listEl = document.getElementById('audit-list');
+            const alertEl = document.getElementById('audit-alert');
+
+            function showAlert(msg, ok) {
+                alertEl.className = 'alert mb-3 border-0 ' + (ok ? 'alert-success' : 'alert-danger');
+                alertEl.style.background = ok ? 'rgba(61,214,140,.15)' : 'rgba(255,107,138,.12)';
+                alertEl.style.color = ok ? '#b8ffd9' : '#ffc4d0';
+                alertEl.textContent = msg;
+                alertEl.classList.remove('d-none');
+            }
+
+            if (!token) {
+                showAlert('Inicia sesión para ver auditorías.', false);
+                return;
+            }
+
+            const canCreate = role === 'ADMIN' || role === 'AUDITOR';
+            document.querySelectorAll('[data-audit-new]').forEach(el => {
+                el.style.display = canCreate ? '' : 'none';
+            });
+
+            async function load() {
+                listEl.innerHTML = '<div class="col-12 text-center py-5" style="color:var(--ap-muted)">Cargando…</div>';
+                try {
+                    const res = await fetch(API + '/audits', { headers: { 'Authorization': 'Bearer ' + token } });
+                    if (res.status === 401) { showAlert('Sesión no válida. Vuelve a entrar.', false); return; }
+                    if (!res.ok) throw new Error('HTTP ' + res.status);
+                    const data = await res.json();
+                    if (!data.length) {
+                        listEl.innerHTML = '<div class="col-12"><div class="glass-card p-4 text-center">No hay auditorías aún. Crea la primera con el botón superior.</div></div>';
+                        return;
+                    }
+                    listEl.innerHTML = data.map(a => `
+                        <div class="col-md-6 col-lg-4">
+                            <article class="glass-card p-4 h-100 audit-card-enter" style="animation-delay: ${Math.random() * 0.15}s">
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <span class="badge rounded-pill audit-status-${(a.status || '').toLowerCase()}">${safe(a.status || '')}</span>
+                                    <small class="text-secondary">${a.scheduledVisitDate ? new Date(a.scheduledVisitDate).toLocaleDateString() : '—'}</small>
+                                </div>
+                                <h2 class="h5 text-white mb-1">${safe(a.title)}</h2>
+                                <p class="small mb-2" style="color:var(--ap-muted)"><strong>Sede:</strong> ${safe(a.sede || '—')}</p>
+                                <p class="small mb-3">${safe(a.internalName || a.description || '')}</p>
+                                <div class="small mb-3" style="color:var(--ap-muted)">
+                                    Creador: ${safe(a.createdBy || '')}<br/>
+                                    Asignado: ${safe(a.assignedToUserName || 'Sin asignar')}
+                                </div>
+                                <a class="btn btn-glow btn-sm w-100" href="/Auditorias/Detalle/${a.id}">Abrir checklist</a>
+                            </article>
+                        </div>`).join('');
+                } catch (e) {
+                    listEl.innerHTML = '';
+                    showAlert('No se pudo cargar. ¿La API está en ' + API + '?', false);
+                }
+            }
+
+            function escapeHtml(s) {
+                return String(s || '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+            }
+            function escapeTpl(s) {
+                return String(s || '').replace(/\\/g, '\\\\').replace(/`/g, '\\`').replace(/\$\{/g, '\\${');
+            }
+            function safe(s) { return escapeTpl(escapeHtml(s)); }
+
+            document.getElementById('btn-reload').addEventListener('click', load);
+            load();
+        })();
+    </script>
+}

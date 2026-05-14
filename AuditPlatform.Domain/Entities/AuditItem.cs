@@ -20,7 +20,16 @@ public class AuditItem
     [Required]
     public double Weight { get; set; }
 
-    public double Score { get; set; }
+    /// <summary>Puntos opción A (máximo) — formato acta A / AR / I.</summary>
+    public double PointsA { get; set; }
+
+    /// <summary>Puntos opción AR (aceptable reducido).</summary>
+    public double PointsAR { get; set; }
+
+    /// <summary>Puntos opción I (inaceptable / cero).</summary>
+    public double PointsI { get; set; }
+
+    public double Score { get; set; } = -1;
     public string? Category { get; set; }
     public string? Observations { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;

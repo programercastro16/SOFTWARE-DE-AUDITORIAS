@@ -56,7 +56,7 @@ public class AuthController : ControllerBase
             ExpiresAt: result.ExpiresAt));
     }
 
-    [HttpGet("users/auditors")]
+    [HttpGet("auditors")]
     [Authorize(Roles = "ADMIN")]
     public async Task<IActionResult> GetAuditors()
     {
@@ -66,7 +66,7 @@ public class AuthController : ControllerBase
     }
 
     [HttpGet("users")]
-    [Authorize]
+    [Authorize(Roles = "ADMIN")]
     public async Task<IActionResult> GetUsers()
     {
         var users = await _authService.GetAllUsersAsync();

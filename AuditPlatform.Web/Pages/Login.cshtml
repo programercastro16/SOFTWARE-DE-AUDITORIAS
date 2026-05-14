@@ -99,6 +99,7 @@
                     try { data = text ? JSON.parse(text) : {}; } catch { }
 
                     if (res.ok && data.token) {
+                        sessionStorage.setItem('audit_user_id', String(data.userId != null ? data.userId : ''));
                         sessionStorage.setItem('audit_access_token', data.token);
                         sessionStorage.setItem('audit_user_name', data.name || '');
                         sessionStorage.setItem('audit_user_role', data.role || '');

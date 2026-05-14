@@ -19,27 +19,26 @@ public class AuditsController : ControllerBase
         _auditService = auditService;
     }
 
-    private (int UserId, string Role) CurrentUser()
-    {
-        var id = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "0");
-        var role = User.FindFirstValue(ClaimTypes.Role) ?? "CLIENTE";
-        return (id, role);
-    }
+    private int CurrentUserId =>
+        int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "0");
+
+    private string? CurrentRole =>
+        User.FindFirstValue(ClaimTypes.Role);
 
     [HttpGet]
     public async Task<IActionResult> GetAll([FromQuery] string? status, [FromQuery] string? search)
     {
-        var (userId, role) = CurrentUser();
-        var audits = await _auditService.GetAuditsForCurrentUserAsync(userId, role, status, search);
+        var audits = await _auditService.GetAuditsForUserAsync(CurrentUserId, CurrentRole, status, search);
         return Ok(audits.Select(a => a.ToDto()).ToList());
     }
 
     [HttpGet("{id:int}")]
     public async Task<IActionResult> GetById(int id)
     {
-        var (userId, role) = CurrentUser();
-        var audit = await _auditService.GetAuditByIdForUserAsync(id, userId, role);
-        if (audit == null) return NotFound();
+        var audit = await _auditService.GetAuditForUserAsync(id, CurrentUserId, CurrentRole);
+        if (audit == null)
+            return NotFound(new { error = "Auditoría no encontrada o sin acceso." });
+
         return Ok(audit.ToDto());
     }
 
@@ -77,17 +76,9 @@ public class AuditsController : ControllerBase
     [Authorize(Roles = "ADMIN,AUDITOR")]
     public async Task<IActionResult> CreateAudit([FromBody] CreateAuditRequest request)
     {
-        var userId = CurrentUser().UserId;
-        try
-        {
-            var audit = await _auditService.CreateAuditAsync(request, userId);
-            var full = await _auditService.GetAuditByIdForUserAsync(audit.Id, userId, CurrentUser().Role);
-            return CreatedAtAction(nameof(GetById), new { id = audit.Id }, full!.ToDto());
-        }
-        catch (ArgumentException ex)
-        {
-            return BadRequest(new { error = ex.Message });
-        }
+        var audit = await _auditService.CreateAuditAsync(request, CurrentUserId, CurrentRole);
+        var full = await _auditService.GetAuditForUserAsync(audit.Id, CurrentUserId, CurrentRole);
+        return CreatedAtAction(nameof(GetById), new { id = audit.Id }, full!.ToDto());
     }
 
     [HttpPut("{id:int}/assign")]
@@ -97,8 +88,7 @@ public class AuditsController : ControllerBase
         try
         {
             var audit = await _auditService.AssignAuditAsync(id, body.AssignedToUserId);
-            var (userId, role) = CurrentUser();
-            var full = await _auditService.GetAuditByIdForUserAsync(audit.Id, userId, role);
+            var full = await _auditService.GetAuditForUserAsync(audit.Id, CurrentUserId, CurrentRole);
             return Ok(full!.ToDto());
         }
         catch (KeyNotFoundException ex)
@@ -114,10 +104,9 @@ public class AuditsController : ControllerBase
     [HttpPut("{id:int}/items")]
     public async Task<IActionResult> UpdateItems(int id, [FromBody] List<AuditItemUpdateRequest> items)
     {
-        var (userId, role) = CurrentUser();
         try
         {
-            var result = await _auditService.UpdateAuditItemsAsync(id, items, userId, role);
+            var result = await _auditService.UpdateAuditItemsAsync(id, items, CurrentUserId, CurrentRole);
             return Ok(result.Select(i => i.ToDto()).ToList());
         }
         catch (KeyNotFoundException ex)
@@ -133,35 +122,41 @@ public class AuditsController : ControllerBase
     [HttpGet("{id:int}/evidences")]
     public async Task<IActionResult> GetEvidence(int id)
     {
-        var (userId, role) = CurrentUser();
-        var audit = await _auditService.GetAuditByIdForUserAsync(id, userId, role);
-        if (audit == null) return NotFound();
-
-        var result = await _auditService.GetEvidenceByAuditAsync(id);
-        return Ok(result.Select(e => e.ToDto()).ToList());
+        try
+        {
+            var result = await _auditService.GetEvidenceByAuditAsync(id, CurrentUserId, CurrentRole);
+            return Ok(result.Select(e => e.ToDto()).ToList());
+        }
+        catch (KeyNotFoundException)
+        {
+            return NotFound(new { error = "Auditoría no encontrada o sin acceso." });
+        }
     }
 
     [HttpPost("{id:int}/evidences")]
     public async Task<IActionResult> UploadEvidence(int id, [FromForm] IFormFile file)
     {
-        var (userId, role) = CurrentUser();
-        var audit = await _auditService.GetAuditByIdForUserAsync(id, userId, role);
-        if (audit == null) return NotFound();
-
         if (file == null || file.Length == 0)
             return BadRequest(new { error = "Archivo no válido." });
 
-        var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "uploads");
-        if (!Directory.Exists(uploadsFolder))
-            Directory.CreateDirectory(uploadsFolder);
+        try
+        {
+            var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "uploads");
+            if (!Directory.Exists(uploadsFolder))
+                Directory.CreateDirectory(uploadsFolder);
 
-        var fileName = Path.GetRandomFileName() + Path.GetExtension(file.FileName);
-        var filePath = Path.Combine(uploadsFolder, fileName);
+            var fileName = Path.GetRandomFileName() + Path.GetExtension(file.FileName);
+            var filePath = Path.Combine(uploadsFolder, fileName);
 
-        await using var stream = System.IO.File.Create(filePath);
-        await file.CopyToAsync(stream);
+            await using var stream = System.IO.File.Create(filePath);
+            await file.CopyToAsync(stream);
 
-        var evidence = await _auditService.AddEvidenceAsync(id, Path.Combine("uploads", fileName));
-        return Created(string.Empty, evidence.ToDto());
+            var evidence = await _auditService.AddEvidenceAsync(id, Path.Combine("uploads", fileName), CurrentUserId, CurrentRole);
+            return Created(string.Empty, evidence.ToDto());
+        }
+        catch (KeyNotFoundException)
+        {
+            return NotFound(new { error = "Auditoría no encontrada o sin acceso." });
+        }
     }
 }

@@ -6,13 +6,24 @@ public record CreateAuditRequest(
     string Sede,
     string? Description,
     string? Comments,
-    string? ScheduledVisitDate);
+    string? ScheduledVisitDate,
+    int? AssignedToUserId);
 
 public record AssignAuditRequest(int AssignedToUserId);
 
 public record AuditItemUpdateRequest(int Id, double Score, string? Observations);
 
-public record AuditItemDto(int Id, string Code, string Label, double Weight, double Score, string? Category, string? Observations);
+public record AuditItemDto(
+    int Id,
+    string Code,
+    string Label,
+    double Weight,
+    double Score,
+    string? Category,
+    string? Observations,
+    double PointsA,
+    double PointsAR,
+    double PointsI);
 public record EvidenceDto(int Id, int AuditId, string FilePath, DateTime CreatedAt);
 
 public record AuditDto(

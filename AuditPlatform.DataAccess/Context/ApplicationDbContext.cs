@@ -59,12 +59,6 @@ public class ApplicationDbContext : DbContext
             .Property(a => a.CreatedAt)
             .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
-        modelBuilder.Entity<Audit>()
-            .HasOne(a => a.AssignedToUser)
-            .WithMany()
-            .HasForeignKey(a => a.AssignedToUserId)
-            .OnDelete(DeleteBehavior.SetNull);
-
         base.OnModelCreating(modelBuilder);
     }
 }

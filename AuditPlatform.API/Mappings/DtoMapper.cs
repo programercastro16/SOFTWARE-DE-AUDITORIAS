@@ -9,7 +9,10 @@ public static class DtoMapper
         => new(user.Id, user.Name, user.Email, user.Role.ToString());
 
     public static AuditItemDto ToDto(this AuditItem item)
-        => new(item.Id, item.Code, item.Label, item.Weight, item.Score, item.Category, item.Observations);
+    {
+        var (pa, par, pi) = AuditItemScoring.GetTriple(item);
+        return new(item.Id, item.Code, item.Label, item.Weight, item.Score, item.Category, item.Observations, pa, par, pi);
+    }
 
     public static EvidenceDto ToDto(this Evidence evidence)
         => new(evidence.Id, evidence.AuditId, evidence.FilePath, evidence.CreatedAt);

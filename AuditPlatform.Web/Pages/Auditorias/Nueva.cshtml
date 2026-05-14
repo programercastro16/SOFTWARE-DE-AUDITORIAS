@@ -1,0 +1,123 @@
+@page
+@inject Microsoft.Extensions.Configuration.IConfiguration Configuration
+@{
+    ViewData["Title"] = "Nueva auditoría";
+    var apiBase = (Configuration["ApiBaseUrl"] ?? "http://localhost:5141").TrimEnd('/');
+}
+
+<div class="hero-panel mb-4">
+    <h1 class="h3 text-white mb-1">Nueva auditoría</h1>
+    <p class="small mb-0" style="color: var(--ap-muted);">Completa los datos. Si eres administrador puedes asignar de inmediato a un auditor.</p>
+</div>
+
+<div id="form-alert" class="alert d-none mb-3 border-0"></div>
+
+<form id="audit-form" class="glass-card p-4 p-md-5 audit-form-enter">
+    <div class="row g-3">
+        <div class="col-md-8">
+            <label class="form-label small text-uppercase" style="color:var(--ap-muted)">Título</label>
+            <input class="form-control form-control-lg audit-input" name="title" required maxlength="200" placeholder="Ej. Auditoría sede centro" />
+        </div>
+        <div class="col-md-4">
+            <label class="form-label small text-uppercase" style="color:var(--ap-muted)">Fecha visita</label>
+            <input class="form-control audit-input" name="scheduledVisitDate" type="datetime-local" />
+        </div>
+        <div class="col-md-6">
+            <label class="form-label small text-uppercase" style="color:var(--ap-muted)">Nombre / referencia</label>
+            <input class="form-control audit-input" name="internalName" maxlength="200" placeholder="Nombre interno o código" />
+        </div>
+        <div class="col-md-6">
+            <label class="form-label small text-uppercase" style="color:var(--ap-muted)">Sede</label>
+            <input class="form-control audit-input" name="sede" required maxlength="200" placeholder="Sede o punto auditado" />
+        </div>
+        <div class="col-12">
+            <label class="form-label small text-uppercase" style="color:var(--ap-muted)">Descripción</label>
+            <textarea class="form-control audit-input" name="description" rows="2" placeholder="Contexto de la visita"></textarea>
+        </div>
+        <div class="col-12">
+            <label class="form-label small text-uppercase" style="color:var(--ap-muted)">Comentarios</label>
+            <textarea class="form-control audit-input" name="comments" rows="2" placeholder="Observaciones previas, contacto en sitio, etc."></textarea>
+        </div>
+        <div class="col-12" id="wrap-assign" style="display:none">
+            <label class="form-label small text-uppercase" style="color:var(--ap-muted)">Asignar a auditor</label>
+            <select class="form-select audit-input" id="assignee" name="assignedToUserId">
+                <option value="">— Sin asignar (luego desde Postman o edición) —</option>
+            </select>
+        </div>
+    </div>
+    <div class="mt-4 d-flex flex-wrap gap-2">
+        <button type="submit" class="btn btn-gradient px-4" id="btn-save">Guardar auditoría</button>
+        <a class="btn btn-glow" asp-page="/Auditorias/Index">Cancelar</a>
+    </div>
+</form>
+
+@section Scripts {
+    <script>
+        (function () {
+            const API = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(apiBase));
+            const token = sessionStorage.getItem('audit_access_token');
+            const role = sessionStorage.getItem('audit_user_role');
+            const alertEl = document.getElementById('form-alert');
+
+            function show(msg, ok) {
+                alertEl.className = 'alert mb-3 border-0 ' + (ok ? 'alert-success' : 'alert-danger');
+                alertEl.style.background = ok ? 'rgba(61,214,140,.15)' : 'rgba(255,107,138,.12)';
+                alertEl.style.color = ok ? '#b8ffd9' : '#ffc4d0';
+                alertEl.textContent = msg;
+                alertEl.classList.remove('d-none');
+            }
+
+            if (!token) { show('Debes iniciar sesión primero.', false); return; }
+
+            if (role === 'ADMIN') {
+                document.getElementById('wrap-assign').style.display = 'block';
+                fetch(API + '/auth/auditors', { headers: { 'Authorization': 'Bearer ' + token } })
+                    .then(r => r.ok ? r.json() : [])
+                    .then(list => {
+                        const sel = document.getElementById('assignee');
+                        (list || []).forEach(u => {
+                            const o = document.createElement('option');
+                            o.value = u.id; o.textContent = u.name + ' · ' + u.email;
+                            sel.appendChild(o);
+                        });
+                    }).catch(() => { });
+            }
+
+            document.getElementById('audit-form').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const fd = new FormData(e.target);
+                const body = {
+                    title: fd.get('title'),
+                    internalName: fd.get('internalName') || null,
+                    sede: fd.get('sede'),
+                    description: fd.get('description') || null,
+                    comments: fd.get('comments') || null,
+                    scheduledVisitDate: fd.get('scheduledVisitDate') || null
+                };
+                const asg = document.getElementById('assignee').value;
+                if (asg) body.assignedToUserId = parseInt(asg, 10);
+
+                const btn = document.getElementById('btn-save');
+                btn.disabled = true;
+                try {
+                    const res = await fetch(API + '/audits', {
+                        method: 'POST',
+                        headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+                        body: JSON.stringify(body)
+                    });
+                    const txt = await res.text();
+                    let data = {}; try { data = txt ? JSON.parse(txt) : {}; } catch { }
+                    if (res.status === 401) { show('Sesión inválida.', false); return; }
+                    if (res.status === 403) { show('Solo administradores o auditores pueden crear auditorías.', false); return; }
+                    if (!res.ok) { show(data.error || 'No se pudo guardar.', false); return; }
+                    show('Guardado. Redirigiendo al checklist…', true);
+                    setTimeout(() => { window.location.href = '/Auditorias/Detalle/' + data.id; }, 600);
+                } catch {
+                    show('Sin conexión con la API.', false);
+                } finally {
+                    btn.disabled = false;
+                }
+            });
+        })();
+    </script>
+}

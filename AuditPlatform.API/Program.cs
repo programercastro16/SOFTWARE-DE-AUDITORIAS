@@ -1,4 +1,5 @@
 using AuditPlatform.API.Services;
+using AuditPlatform.DataAccess;
 using AuditPlatform.DataAccess.Context;
 using AuditPlatform.API;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -63,6 +64,7 @@ using (var scope = app.Services.CreateScope())
 {
     var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
     dbContext.Database.EnsureCreated();
+    SqliteSchemaPatcher.Apply(dbContext);
     PostmanUsersImporter.Apply(dbContext, app.Configuration, app.Environment);
     DevDataSeeder.Apply(dbContext, app.Configuration, app.Environment);
 }
@@ -73,8 +75,14 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
+// CORS antes que redirección HTTPS: evita fallos en fetch desde el front (localhost:5189 → API :5141).
 app.UseCors();
+// En desarrollo solo escuchamos HTTP (5141); forzar HTTPS rompe llamadas del navegador a http://localhost:5141.
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHttpsRedirection();
+}
+
 app.UseAuthentication();
 app.UseAuthorization();
 app.UseStaticFiles(new StaticFileOptions
