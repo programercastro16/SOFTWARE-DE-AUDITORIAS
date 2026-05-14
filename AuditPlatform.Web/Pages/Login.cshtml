@@ -1,0 +1,135 @@
+@page
+@inject Microsoft.Extensions.Configuration.IConfiguration Configuration
+@{
+    ViewData["Title"] = "Iniciar sesión";
+    Layout = "_LayoutAuth";
+    var apiBase = (Configuration["ApiBaseUrl"] ?? "http://localhost:5141").TrimEnd('/');
+}
+
+<div class="auth-shell">
+    <div class="auth-showcase d-none d-lg-flex">
+        <div class="auth-showcase-inner">
+            <div class="auth-badge"><span class="auth-dot"></span> Plataforma viva</div>
+            <h1 class="auth-headline">Control total de tus <span class="text-gradient">auditorías</span></h1>
+            <p class="auth-lead">Panel seguro, métricas en tiempo real y flujo pensado para equipos que auditan sin fricción.</p>
+            <ul class="auth-features">
+                <li><span class="auth-check">✓</span> Seguimiento por estado y evidencias</li>
+                <li><span class="auth-check">✓</span> Roles ADMIN · AUDITOR · CLIENTE</li>
+                <li><span class="auth-check">✓</span> API documentada con Swagger</li>
+            </ul>
+            <div class="auth-orbs" aria-hidden="true">
+                <span class="orb orb-1"></span>
+                <span class="orb orb-2"></span>
+                <span class="orb orb-3"></span>
+            </div>
+        </div>
+    </div>
+    <div class="auth-panel">
+        <div class="auth-card">
+            <div class="text-center mb-4">
+                <div class="auth-logo mb-2">AP</div>
+                <h2 class="auth-title">Bienvenido</h2>
+                <p class="auth-sub">Ingresa con la misma cuenta que usas en Postman.</p>
+            </div>
+            <form id="loginForm" class="auth-form" novalidate>
+                <div class="form-floating form-glow mb-3">
+                    <input type="email" class="form-control" id="email" placeholder="correo" autocomplete="username" required />
+                    <label for="email">Correo electrónico</label>
+                </div>
+                <div class="form-floating form-glow mb-2 position-relative">
+                    <input type="password" class="form-control pe-5" id="password" placeholder="contraseña" autocomplete="current-password" required />
+                    <label for="password">Contraseña</label>
+                    <button type="button" class="btn btn-link auth-toggle-pw" id="togglePw" aria-label="Mostrar u ocultar contraseña">👁</button>
+                </div>
+                <div class="d-flex justify-content-between align-items-center mb-4 small text-secondary">
+                    <label class="d-flex align-items-center gap-2 mb-0 auth-remember">
+                        <input type="checkbox" id="remember" class="form-check-input" />
+                        Recordarme en este equipo
+                    </label>
+                    <span class="auth-hint">JWT seguro</span>
+                </div>
+                <button type="submit" class="btn btn-gradient w-100 py-3 mb-3" id="btnSubmit">
+                    <span class="btn-label">Entrar al panel</span>
+                    <span class="btn-spinner spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                </button>
+                <div id="loginResult" class="auth-alert-wrap"></div>
+                <p class="text-center small text-secondary mb-0 mt-3">
+                    API en <code class="auth-code">@apiBase</code>
+                </p>
+            </form>
+        </div>
+        <p class="auth-footer-note text-center small mt-4 mb-0">
+            <a asp-page="/Index" class="link-light link-underline-opacity-25">← Volver al inicio</a>
+        </p>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        (function () {
+            const API_BASE = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(apiBase));
+            const form = document.getElementById('loginForm');
+            const btn = document.getElementById('btnSubmit');
+            const label = btn.querySelector('.btn-label');
+            const spin = btn.querySelector('.btn-spinner');
+            const result = document.getElementById('loginResult');
+            const pw = document.getElementById('password');
+            document.getElementById('togglePw').addEventListener('click', () => {
+                pw.type = pw.type === 'password' ? 'text' : 'password';
+            });
+
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                result.innerHTML = '';
+                btn.disabled = true;
+                label.classList.add('opacity-50');
+                spin.classList.remove('d-none');
+                form.classList.remove('was-shake');
+
+                const email = document.getElementById('email').value.trim();
+                const password = document.getElementById('password').value;
+                try {
+                    const res = await fetch(API_BASE + '/auth/login', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                        body: JSON.stringify({ email, password })
+                    });
+                    let data = {};
+                    const text = await res.text();
+                    try { data = text ? JSON.parse(text) : {}; } catch { }
+
+                    if (res.ok && data.token) {
+                        sessionStorage.setItem('audit_access_token', data.token);
+                        sessionStorage.setItem('audit_user_name', data.name || '');
+                        sessionStorage.setItem('audit_user_role', data.role || '');
+                        if (document.getElementById('remember').checked) {
+                            localStorage.setItem('audit_last_email', email);
+                        } else {
+                            localStorage.removeItem('audit_last_email');
+                        }
+                        result.innerHTML = '<div class="alert alert-success auth-toast shadow">¡Listo! Redirigiendo…</div>';
+                        setTimeout(() => { window.location.href = '/Dashboard'; }, 650);
+                        return;
+                    }
+                    const msg = data.error || data.message || 'No se pudo iniciar sesión.';
+                    result.innerHTML = '<div class="alert alert-danger auth-toast shadow" role="alert">' + escapeHtml(msg) + '</div>';
+                    form.classList.add('was-shake');
+                } catch (err) {
+                    result.innerHTML = '<div class="alert alert-danger auth-toast shadow">No hay conexión con la API. ¿Está corriendo en <strong>' + escapeHtml(API_BASE) + '</strong>?</div>';
+                    form.classList.add('was-shake');
+                } finally {
+                    btn.disabled = false;
+                    label.classList.remove('opacity-50');
+                    spin.classList.add('d-none');
+                }
+            });
+
+            function escapeHtml(s) {
+                return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+            }
+
+            const last = localStorage.getItem('audit_last_email');
+            if (last) document.getElementById('email').value = last;
+        })();
+    </script>
+}

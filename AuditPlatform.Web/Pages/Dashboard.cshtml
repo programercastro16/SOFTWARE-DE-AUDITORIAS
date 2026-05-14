@@ -1,0 +1,147 @@
+@page
+@inject Microsoft.Extensions.Configuration.IConfiguration Configuration
+@{
+    ViewData["Title"] = "Panel";
+    var apiBase = (Configuration["ApiBaseUrl"] ?? "http://localhost:5141").TrimEnd('/');
+}
+
+<div class="hero-panel">
+    <div class="d-flex flex-wrap justify-content-between align-items-start gap-3">
+        <div>
+            <p class="small text-uppercase mb-1" style="letter-spacing: .18em; color: var(--ap-muted);">Resumen operativo</p>
+            <h1 class="h2 mb-1 text-white">Hola, <span id="dash-name" class="text-gradient">…</span></h1>
+            <p class="mb-0 small" style="color: var(--ap-muted);">Datos en vivo desde la API. Pulsa actualizar para volver a cargar.</p>
+        </div>
+        <div class="d-flex flex-wrap gap-2">
+            <button type="button" class="btn btn-glow" id="btn-refresh">↻ Actualizar métricas</button>
+            <a class="btn btn-glow" href="@($"{apiBase}/swagger")" target="_blank" rel="noopener">Swagger</a>
+        </div>
+    </div>
+</div>
+
+<div id="dash-banner" class="alert alert-info border-0 mb-4 d-none" style="background: rgba(108,140,255,.12); color: #dbe4ff;"></div>
+
+<div class="row g-4 mb-2">
+    <div class="col-md-3 col-6">
+        <div class="glass-card p-4 text-center h-100">
+            <div class="stat-label">Auditorías</div>
+            <div class="stat-value" id="stat-total">—</div>
+        </div>
+    </div>
+    <div class="col-md-3 col-6">
+        <div class="glass-card p-4 text-center h-100">
+            <div class="stat-label">Aprobadas</div>
+            <div class="stat-value" id="stat-approved">—</div>
+        </div>
+    </div>
+    <div class="col-md-3 col-6">
+        <div class="glass-card p-4 text-center h-100">
+            <div class="stat-label">Borradores</div>
+            <div class="stat-value" id="stat-drafts">—</div>
+        </div>
+    </div>
+    <div class="col-md-3 col-6">
+        <div class="glass-card p-4 text-center h-100">
+            <div class="stat-label">Avance</div>
+            <div class="stat-value" id="stat-rate">—</div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-md-4">
+        <div class="card glass-card h-100 border-0">
+            <div class="card-body">
+                <h5 class="card-title">Auditorías</h5>
+                <p class="card-text">Lista y detalle vía API con token. Ideal para integrar con herramientas internas.</p>
+                <a class="btn btn-glow btn-sm" asp-page="/Index">Volver al inicio</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card glass-card h-100 border-0">
+            <div class="card-body">
+                <h5 class="card-title">Roles</h5>
+                <p class="card-text">ADMIN y AUDITOR ven estadísticas. CLIENTE tiene alcance acotado en la API.</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card glass-card h-100 border-0">
+            <div class="card-body">
+                <h5 class="card-title">Evidencias</h5>
+                <p class="card-text">Sube archivos por auditoría desde Postman o integraciones; quedan enlazados al expediente.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        (function () {
+            const API_BASE = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(apiBase));
+            const token = sessionStorage.getItem('audit_access_token');
+            const name = sessionStorage.getItem('audit_user_name');
+            document.getElementById('dash-name').textContent = name || 'invitado';
+
+            const banner = document.getElementById('dash-banner');
+            function showBanner(msg, kind) {
+                banner.className = 'alert mb-4 border-0 ' + (kind === 'err' ? 'alert-danger' : 'alert-info');
+                banner.style.background = kind === 'err' ? 'rgba(255,107,138,.15)' : 'rgba(108,140,255,.12)';
+                banner.style.color = kind === 'err' ? '#ffc4d0' : '#dbe4ff';
+                banner.textContent = msg;
+                banner.classList.remove('d-none');
+            }
+
+            if (!token) {
+                showBanner('No hay token en este navegador. Inicia sesión para cargar métricas reales.', 'err');
+                return;
+            }
+
+            async function loadStats() {
+                const btn = document.getElementById('btn-refresh');
+                btn.disabled = true;
+                try {
+                    const res = await fetch(API_BASE + '/audits/stats', {
+                        headers: { 'Authorization': 'Bearer ' + token, 'Accept': 'application/json' }
+                    });
+                    if (res.status === 401) {
+                        showBanner('Sesión expirada o no autorizada. Vuelve a iniciar sesión.', 'err');
+                        return;
+                    }
+                    if (res.status === 403) {
+                        showBanner('Tu rol no incluye estadísticas (se requiere ADMIN o AUDITOR).', 'err');
+                        document.getElementById('stat-total').textContent = '—';
+                        return;
+                    }
+                    if (!res.ok) throw new Error('HTTP ' + res.status);
+                    const data = await res.json();
+                    animateNumber('stat-total', data.totalAudits);
+                    animateNumber('stat-approved', data.approved);
+                    animateNumber('stat-drafts', data.drafts);
+                    document.getElementById('stat-rate').textContent = (data.completionRate ?? 0) + '%';
+                    banner.classList.add('d-none');
+                } catch (e) {
+                    showBanner('No se pudo contactar la API en ' + API_BASE + '. ¿Está ejecutándose?', 'err');
+                } finally {
+                    btn.disabled = false;
+                }
+            }
+
+            function animateNumber(id, end) {
+                const el = document.getElementById(id);
+                const target = Number(end) || 0;
+                let cur = 0;
+                const step = Math.max(1, Math.ceil(target / 25));
+                const t = setInterval(() => {
+                    cur += step;
+                    if (cur >= target) { cur = target; clearInterval(t); }
+                    el.textContent = cur;
+                }, 20);
+            }
+
+            document.getElementById('btn-refresh').addEventListener('click', loadStats);
+            loadStats();
+        })();
+    </script>
+}

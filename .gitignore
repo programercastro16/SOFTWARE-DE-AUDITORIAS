@@ -1,3 +1,30 @@
+# .NET
+**/bin/
+**/obj/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+bld/
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+*.db
+*.db-shm
+*.db-wal
+
+# Claves en texto plano (importación Postman local)
+AuditPlatform.API/postman-users.json
+
+
+# Node (por si se añade tooling JS en el futuro)
 node_modules/
 dist/
 coverage/
@@ -5,9 +32,6 @@ coverage/
 .env
 .env.*
 !.env.example
-
-backend/data/*.db
-backend/uploads/*
 
 .DS_Store
 Thumbs.db

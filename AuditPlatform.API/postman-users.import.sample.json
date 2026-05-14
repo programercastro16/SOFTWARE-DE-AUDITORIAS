@@ -1,0 +1,20 @@
+[
+  {
+    "email": "administrador1016@demo.com",
+    "password": "PON_AQUI_LA_MISMA_CLAVE_QUE_EN_POSTMAN",
+    "name": "Administrador",
+    "role": "ADMIN"
+  },
+  {
+    "email": "auditor1@demo.com",
+    "password": "PON_AQUI_LA_CLAVE",
+    "name": "Auditor uno",
+    "role": "AUDITOR"
+  },
+  {
+    "email": "cliente1@demo.com",
+    "password": "PON_AQUI_LA_CLAVE",
+    "name": "Cliente uno",
+    "role": "CLIENTE"
+  }
+]

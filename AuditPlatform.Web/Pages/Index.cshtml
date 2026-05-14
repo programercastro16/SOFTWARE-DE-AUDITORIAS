@@ -1,0 +1,30 @@
+@page
+@model IndexModel
+@{
+    ViewData["Title"] = "Inicio";
+}
+
+<section class="hero-panel text-center text-lg-start">
+    <div class="row align-items-center g-4">
+        <div class="col-lg-7">
+            <p class="small text-uppercase mb-2" style="letter-spacing: .2em; color: var(--ap-muted);">Plataforma de cumplimiento</p>
+            <h1 class="display-5 mb-3">Auditorías con <span class="text-gradient">claridad total</span></h1>
+            <p class="lead mb-4">Unifica evidencias, roles y seguimiento en una API .NET y una experiencia web viva pensada para tu equipo.</p>
+            <div class="d-flex flex-wrap gap-2 justify-content-center justify-content-lg-start">
+                <a class="btn btn-lg btn-gradient px-4" asp-page="/Login">Entrar al workspace</a>
+                <a class="btn btn-lg btn-glow px-4" asp-page="/Dashboard">Ver panel</a>
+            </div>
+        </div>
+        <div class="col-lg-5">
+            <div class="glass-card p-4 text-start">
+                <h3 class="h5 text-white mb-3">En tiempo real</h3>
+                <ul class="list-unstyled mb-0 small" style="color: var(--ap-muted);">
+                    <li class="mb-2">✦ Métricas y estados desde la API</li>
+                    <li class="mb-2">✦ JWT compatible con Postman</li>
+                    <li class="mb-2">✦ Interfaz oscura con microinteracciones</li>
+                    <li>✦ Swagger para probar cada endpoint</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</section>
