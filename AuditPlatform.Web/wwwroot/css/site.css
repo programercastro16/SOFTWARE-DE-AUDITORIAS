@@ -546,6 +546,18 @@ body {
   border: 1px solid rgba(255, 107, 138, 0.32);
 }
 
+.audit-status-calificado {
+  background: rgba(108, 140, 255, 0.2);
+  color: #dbe4ff;
+  border: 1px solid rgba(108, 140, 255, 0.35);
+}
+
+.audit-status-finalizado {
+  background: rgba(61, 214, 140, 0.18);
+  color: #b8ffd9;
+  border: 1px solid rgba(61, 214, 140, 0.32);
+}
+
 .audit-input {
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid var(--ap-border);
@@ -558,6 +570,41 @@ body {
   box-shadow: 0 0 0 3px rgba(108, 140, 255, 0.15);
   background: rgba(255, 255, 255, 0.08);
   color: #fff;
+}
+
+/* Selects: lista desplegable legible en tema oscuro (Windows/Chrome/Edge) */
+select.audit-input,
+.form-select.audit-input {
+  color-scheme: dark;
+  --bs-form-select-bg: #121a30;
+  --bs-form-select-color: var(--ap-text);
+  --bs-form-select-border-color: var(--ap-border);
+  background-color: #121a30;
+  color: var(--ap-text);
+  border-color: var(--ap-border);
+}
+
+select.audit-input:focus,
+.form-select.audit-input:focus {
+  color: var(--ap-text);
+  background-color: #1a2544;
+}
+
+select.audit-input option,
+.form-select.audit-input option {
+  background-color: #121a30;
+  color: #e8ecff;
+}
+
+select.audit-input option:checked,
+.form-select.audit-input option:checked {
+  background-color: #2a3d6b;
+  color: #fff;
+}
+
+.dash-row-assign {
+  min-width: 14rem;
+  max-width: 22rem !important;
 }
 
 input.form-range.audit-range {
@@ -994,7 +1041,7 @@ body.acta-modal-open {
 .acta-modal-dialog {
   position: relative;
   z-index: 1;
-  width: min(960px, 100%);
+  width: min(1080px, 100%);
   max-height: min(92vh, 900px);
   display: flex;
   flex-direction: column;
@@ -1119,4 +1166,309 @@ body.acta-modal-open {
 .acta-circle:has(input:focus-visible) .acta-circle-ui {
   outline: 2px solid rgba(108, 140, 255, 0.8);
   outline-offset: 3px;
+}
+
+/* Acta reorganizada: CP / CR / NC */
+.acta-stat-pill {
+  background: rgba(0, 0, 0, 0.22);
+  border: 1px solid var(--ap-border);
+  border-radius: 12px;
+  padding: 0.65rem 0.85rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  height: 100%;
+}
+
+.acta-stat-label {
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--ap-muted);
+}
+
+.acta-stat-value {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: #fff;
+}
+
+.acta-stat-value--sm {
+  font-size: 0.95rem;
+}
+
+.acta-legend-chip {
+  display: inline-block;
+  font-weight: 700;
+  font-size: 0.7rem;
+  padding: 0.15rem 0.45rem;
+  border-radius: 6px;
+  margin-right: 0.35rem;
+  vertical-align: middle;
+}
+
+.acta-legend-chip--cp {
+  background: rgba(61, 214, 140, 0.25);
+  color: #b8ffd9;
+}
+
+.acta-legend-chip--cr {
+  background: rgba(255, 193, 7, 0.22);
+  color: #ffe082;
+}
+
+.acta-legend-chip--nc {
+  background: rgba(255, 107, 138, 0.2);
+  color: #ffc4d0;
+}
+
+.acta-section-toggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--ap-border);
+  border-radius: 14px;
+  background: rgba(0, 0, 0, 0.2);
+  color: #fff;
+  text-align: left;
+  margin-bottom: 0.5rem;
+  transition: background 0.2s, border-color 0.2s;
+}
+
+.acta-section-toggle:hover,
+.acta-section-toggle.is-open {
+  border-color: rgba(108, 140, 255, 0.45);
+  background: rgba(108, 140, 255, 0.08);
+}
+
+.acta-section-num {
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.8rem;
+  background: linear-gradient(135deg, var(--ap-accent), var(--ap-accent-2));
+  flex-shrink: 0;
+}
+
+.acta-section-title-text {
+  flex: 1;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.acta-section-count {
+  font-size: 0.72rem;
+  color: var(--ap-muted);
+}
+
+.acta-section-chevron {
+  font-size: 0.65rem;
+  color: var(--ap-muted);
+  transition: transform 0.2s;
+}
+
+.acta-section-toggle.is-open .acta-section-chevron {
+  transform: rotate(180deg);
+}
+
+.acta-section-panel {
+  padding: 0 0.25rem 1rem;
+}
+
+.acta-item {
+  border: 1px solid rgba(120, 160, 255, 0.12) !important;
+  border-radius: 14px;
+  padding: 1rem 1.1rem !important;
+  margin-bottom: 0.85rem !important;
+  background: rgba(0, 0, 0, 0.15);
+}
+
+.acta-item-head {
+  margin-bottom: 0.5rem;
+}
+
+.acta-item-code {
+  display: inline-block;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 0.2rem 0.5rem;
+  border-radius: 6px;
+  background: rgba(108, 140, 255, 0.15);
+  color: #b8c8ff;
+  margin-bottom: 0.35rem;
+}
+
+.acta-item-label {
+  color: #fff;
+  font-size: 0.92rem;
+  margin: 0;
+  line-height: 1.4;
+}
+
+.acta-item-sub {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--ap-muted);
+  margin-bottom: 0.65rem;
+}
+
+.acta-grades {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+}
+
+.acta-grade {
+  cursor: pointer;
+  margin: 0;
+  flex: 1 1 7.5rem;
+  max-width: 11rem;
+}
+
+.acta-grade input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.acta-grade-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 0.75rem 0.5rem;
+  border-radius: 14px;
+  border: 2px solid rgba(120, 160, 255, 0.25);
+  background: rgba(0, 0, 0, 0.2);
+  min-height: 6.5rem;
+  transition: border-color 0.2s, box-shadow 0.2s, transform 0.15s;
+}
+
+.acta-grade-code {
+  font-weight: 800;
+  font-size: 1rem;
+  letter-spacing: 0.08em;
+}
+
+.acta-grade-pts {
+  font-size: 0.75rem;
+  color: var(--ap-muted);
+  margin: 0.15rem 0;
+}
+
+.acta-grade-title {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #fff;
+}
+
+.acta-grade-hint {
+  font-size: 0.65rem;
+  color: var(--ap-muted);
+  margin-top: 0.2rem;
+  line-height: 1.2;
+}
+
+.acta-grade--cp:has(input:checked) .acta-grade-card {
+  border-color: rgba(61, 214, 140, 0.7);
+  box-shadow: 0 0 0 3px rgba(61, 214, 140, 0.15);
+}
+
+.acta-grade--cr:has(input:checked) .acta-grade-card {
+  border-color: rgba(255, 193, 7, 0.65);
+  box-shadow: 0 0 0 3px rgba(255, 193, 7, 0.12);
+}
+
+.acta-grade--nc:has(input:checked) .acta-grade-card {
+  border-color: rgba(255, 107, 138, 0.65);
+  box-shadow: 0 0 0 3px rgba(255, 107, 138, 0.12);
+}
+
+.acta-grade:hover .acta-grade-card {
+  transform: translateY(-2px);
+}
+
+.sig-pad-wrap {
+  border: 1px dashed var(--ap-border);
+  border-radius: 12px;
+  background: #f8f9fc;
+  overflow: hidden;
+}
+
+.sig-canvas {
+  display: block;
+  width: 100%;
+  height: auto;
+  cursor: crosshair;
+  touch-action: none;
+}
+
+.sig-thumb {
+  max-width: 140px;
+  max-height: 56px;
+  background: #fff;
+  border-radius: 8px;
+  padding: 4px;
+  border: 1px solid var(--ap-border);
+}
+
+.det-workflow-steps {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem 0.5rem;
+}
+
+.det-step {
+  font-size: 0.78rem;
+  padding: 0.35rem 0.65rem;
+  border-radius: 999px;
+  border: 1px solid var(--ap-border);
+  color: var(--ap-muted);
+}
+
+.det-step--active {
+  border-color: rgba(108, 140, 255, 0.55);
+  color: #fff;
+  background: rgba(108, 140, 255, 0.15);
+}
+
+.det-step--done {
+  border-color: rgba(61, 214, 140, 0.45);
+  color: #b8ffd9;
+  background: rgba(61, 214, 140, 0.1);
+}
+
+.det-step-arrow {
+  color: var(--ap-muted);
+  font-size: 0.75rem;
+}
+
+.det-closure-actions--locked {
+  opacity: 0.45;
+  pointer-events: none;
+  user-select: none;
+}
+
+#btn-delete-audit {
+  border: 1px solid rgba(255, 107, 138, 0.55) !important;
+  color: #ffc4d0 !important;
+}
+
+#btn-delete-audit:hover {
+  background: rgba(255, 107, 138, 0.2) !important;
+}
+
+.dash-row-delete-btn {
+  border: 1px solid rgba(255, 107, 138, 0.5) !important;
+  color: #ffc4d0 !important;
 }

@@ -45,6 +45,7 @@ builder.Services.AddAuthorization();
 
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<AuditService>();
+builder.Services.AddScoped<AuditPdfService>();
 
 builder.Services.AddCors(options =>
 {
@@ -95,7 +96,8 @@ app.MapControllers();
 app.MapGet("/", () => Results.Json(new
 {
     message = "API de auditorías funcionando",
-    version = "1.0.0",
+    version = "2.0.0",
+    features = new[] { "delete-audit", "acta-pdf", "signatures", "acta-cp-cr-nc" },
     timestamp = DateTime.UtcNow,
     documentation = "/swagger"
 }));

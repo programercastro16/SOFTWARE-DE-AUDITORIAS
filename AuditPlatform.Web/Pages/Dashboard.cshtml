@@ -21,7 +21,7 @@
 
 <div id="dash-banner" class="alert alert-info border-0 mb-4 d-none" style="background: rgba(108,140,255,.12); color: #dbe4ff;"></div>
 
-<div id="dash-stats-row" class="row g-4 mb-2">
+<div id="dash-stats-row" class="row g-4 mb-2 d-none" aria-hidden="true">
     <div class="col-md-3 col-6">
         <div class="glass-card p-4 text-center h-100">
             <div class="stat-label">Auditorías</div>
@@ -48,107 +48,70 @@
     </div>
 </div>
 
-@* ——— ADMIN: creación, asignación, usuarios/roles ——— *@
+@* ——— ADMIN: creación + listado ——— *@
 <div id="dash-admin-root" class="d-none">
-    <div class="row g-4 align-items-stretch mb-4">
-        <div class="col-lg-7">
-            <div class="dash-flow-step glass-card border-0 p-4 p-md-5 h-100">
-                <div class="d-flex align-items-center gap-2 mb-3">
-                    <span class="dash-step-badge">1</span>
-                    <h2 class="h5 text-white mb-0">Nueva auditoría</h2>
+    <div class="dash-flow-step glass-card border-0 p-4 p-md-5 mb-4">
+        <h2 class="h4 text-white mb-2">Nueva auditoría</h2>
+        <p class="small mb-4" style="color: var(--ap-muted);">Completa los datos y asígnala a un auditor si lo necesitas.</p>
+
+        <div id="dash-form-alert" class="alert d-none mb-3 border-0"></div>
+
+        <form id="dash-audit-form">
+            <div class="row g-3">
+                <div class="col-md-8">
+                    <label class="form-label small text-uppercase" style="color:var(--ap-muted)">Título</label>
+                    <input class="form-control form-control-lg audit-input" name="title" required maxlength="200" placeholder="Ej. Auditoría sede centro" />
                 </div>
-                <p class="small mb-4" style="color: var(--ap-muted);">Crea la visita y, si quieres, asígnala ya a un auditor. Luego reasigna desde la tabla de recientes si hace falta.</p>
-
-                <div id="dash-form-alert" class="alert d-none mb-3 border-0"></div>
-
-                <form id="dash-audit-form">
-                    <div class="row g-3">
-                        <div class="col-md-8">
-                            <label class="form-label small text-uppercase" style="color:var(--ap-muted)">Título</label>
-                            <input class="form-control form-control-lg audit-input" name="title" required maxlength="200" placeholder="Ej. Auditoría sede centro" />
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label small text-uppercase" style="color:var(--ap-muted)">Fecha visita</label>
-                            <input class="form-control audit-input" name="scheduledVisitDate" type="datetime-local" />
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label small text-uppercase" style="color:var(--ap-muted)">Nombre / referencia</label>
-                            <input class="form-control audit-input" name="internalName" maxlength="200" placeholder="Código o referencia interna" />
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label small text-uppercase" style="color:var(--ap-muted)">Sede</label>
-                            <input class="form-control audit-input" name="sede" required maxlength="200" placeholder="Sede o punto auditado" />
-                        </div>
-                        <div class="col-12">
-                            <label class="form-label small text-uppercase" style="color:var(--ap-muted)">Descripción</label>
-                            <textarea class="form-control audit-input" name="description" rows="2" placeholder="Contexto de la visita"></textarea>
-                        </div>
-                        <div class="col-12">
-                            <label class="form-label small text-uppercase" style="color:var(--ap-muted)">Comentarios</label>
-                            <textarea class="form-control audit-input" name="comments" rows="2" placeholder="Observaciones previas…"></textarea>
-                        </div>
-                        <div class="col-12">
-                            <label class="form-label small text-uppercase" style="color:var(--ap-muted)">Asignar a auditor (al crear)</label>
-                            <select class="form-select audit-input" id="dash-assignee" name="assignedToUserId">
-                                <option value="">— Sin asignar —</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="mt-4 d-flex flex-wrap gap-2 align-items-center">
-                        <button type="submit" class="btn btn-gradient px-4" id="dash-btn-save">Crear auditoría</button>
-                        <button type="button" class="btn btn-glow btn-sm" id="dash-btn-clear">Limpiar</button>
-                    </div>
-                </form>
+                <div class="col-md-4">
+                    <label class="form-label small text-uppercase" style="color:var(--ap-muted)">Fecha visita</label>
+                    <input class="form-control audit-input" name="scheduledVisitDate" type="datetime-local" />
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label small text-uppercase" style="color:var(--ap-muted)">Nombre / referencia</label>
+                    <input class="form-control audit-input" name="internalName" maxlength="200" placeholder="Código o referencia interna" />
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label small text-uppercase" style="color:var(--ap-muted)">Sede</label>
+                    <input class="form-control audit-input" name="sede" required maxlength="200" placeholder="Sede o punto auditado" />
+                </div>
+                <div class="col-12">
+                    <label class="form-label small text-uppercase" style="color:var(--ap-muted)">Descripción</label>
+                    <textarea class="form-control audit-input" name="description" rows="2" placeholder="Contexto de la visita"></textarea>
+                </div>
+                <div class="col-12">
+                    <label class="form-label small text-uppercase" style="color:var(--ap-muted)">Comentarios</label>
+                    <textarea class="form-control audit-input" name="comments" rows="2" placeholder="Observaciones previas…"></textarea>
+                </div>
+                <div class="col-12">
+                    <label class="form-label small text-uppercase" style="color:var(--ap-muted)">Asignar a auditor (al crear)</label>
+                    <select class="form-select audit-input" id="dash-assignee" name="assignedToUserId">
+                        <option value="">— Sin asignar —</option>
+                    </select>
+                </div>
             </div>
-        </div>
-
-        <div class="col-lg-5 d-flex flex-column gap-4">
-            <div class="glass-card border-0 p-4 flex-grow-1">
-                <div class="d-flex align-items-center gap-2 mb-3">
-                    <span class="dash-step-badge dash-step-badge--soft">2</span>
-                    <h2 class="h5 text-white mb-0">Recientes</h2>
-                </div>
-                <p class="small mb-3" style="color: var(--ap-muted);">Reasigna con el selector y el botón en cada fila.</p>
-                <div id="dash-recent-wrap" class="flex-grow-1" style="min-height: 8rem;">
-                    <p class="small mb-0" style="color: var(--ap-muted);" id="dash-recent-placeholder">Cargando…</p>
-                </div>
-                <a class="btn btn-glow btn-sm w-100 mt-3" asp-page="/Auditorias/Index">Abrir listado completo</a>
+            <div class="mt-4 d-flex flex-wrap gap-2 align-items-center">
+                <button type="submit" class="btn btn-gradient px-4" id="dash-btn-save">Crear auditoría</button>
+                <button type="button" class="btn btn-glow btn-sm" id="dash-btn-clear">Limpiar</button>
             </div>
-        </div>
+        </form>
     </div>
 
     <div class="glass-card border-0 p-4 p-md-5 mb-4">
-        <div class="d-flex align-items-center gap-2 mb-3">
-            <span class="dash-step-badge">3</span>
-            <h2 class="h5 text-white mb-0">Usuarios y roles</h2>
-        </div>
-        <p class="small mb-4" style="color: var(--ap-muted);">Comprueba quién es <strong class="text-white">AUDITOR</strong> (aparecen en el desplegable de asignación). Los usuarios nuevos siguen creándose por API / Postman.</p>
-        <div class="table-responsive rounded-3 border border-secondary border-opacity-25" style="max-height: 22rem; overflow: auto;">
-            <table class="table table-dark table-hover table-sm mb-0 align-middle">
-                <thead class="sticky-top" style="background: rgba(12,16,28,.95);">
-                    <tr>
-                        <th>Id</th>
-                        <th>Nombre</th>
-                        <th>Correo</th>
-                        <th>Rol</th>
-                    </tr>
-                </thead>
-                <tbody id="dash-admin-users-body">
-                    <tr><td colspan="4" class="small text-secondary px-3 py-3">Cargando…</td></tr>
-                </tbody>
-            </table>
+        <h2 class="h4 text-white mb-3">Auditorías creadas</h2>
+        <p class="small mb-3" style="color: var(--ap-muted);">Todas las visitas registradas. Reasigna al auditor desde cada fila si hace falta.</p>
+        <div id="dash-recent-wrap" style="min-height: 4rem;">
+            <p class="small mb-0" style="color: var(--ap-muted);" id="dash-recent-placeholder">Cargando…</p>
         </div>
     </div>
 </div>
 
-@* ——— AUDITOR: prioridad = asignadas; crear en página aparte ——— *@
+@* ——— AUDITOR: solo asignadas ——— *@
 <div id="dash-auditor-root" class="d-none">
     <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
         <div>
             <h2 class="h4 text-white mb-1">Asignadas a ti</h2>
             <p class="small mb-0" style="color: var(--ap-muted);">Son las que un administrador te delegó. Abre el checklist para calificar.</p>
         </div>
-        <a class="btn btn-gradient" asp-page="/Auditorias/Nueva">Crear nueva auditoría</a>
     </div>
 
     <div id="dash-auditor-alert" class="alert d-none mb-3 border-0"></div>
@@ -158,18 +121,6 @@
         <div id="dash-auditor-assigned-wrap" style="min-height: 4rem;">
             <p class="small mb-0" style="color: var(--ap-muted);">Cargando…</p>
         </div>
-    </div>
-
-    <div class="glass-card border-0 p-4 p-md-5 mb-4">
-        <h3 class="h6 text-uppercase mb-3" style="letter-spacing: .12em; color: var(--ap-muted);">Otras que creaste tú</h3>
-        <p class="small mb-3" style="color: var(--ap-muted);">Auditorías que abriste tú y no están asignadas a ti como responsable.</p>
-        <div id="dash-auditor-created-wrap" style="min-height: 3rem;">
-            <p class="small mb-0" style="color: var(--ap-muted);">Cargando…</p>
-        </div>
-    </div>
-
-    <div class="text-center">
-        <a class="btn btn-glow" asp-page="/Auditorias/Index">Ver todas en listado</a>
     </div>
 </div>
 
@@ -207,7 +158,6 @@
                 banner.textContent = msg;
                 banner.classList.remove('d-none');
             }
-            function hideBanner() { banner.classList.add('d-none'); }
 
             function formAlert(msg, ok, checklistId) {
                 const el = document.getElementById('dash-form-alert');
@@ -237,36 +187,20 @@
                 el.classList.remove('d-none');
             }
 
-            function getUserId() {
-                let id = parseInt(sessionStorage.getItem('audit_user_id'), 10);
-                if (!isNaN(id) && id > 0) return id;
-                const t = sessionStorage.getItem('audit_access_token');
-                if (!t) return 0;
-                try {
-                    const p = JSON.parse(atob(t.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')));
-                    const sub = p['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier'] || p.sub || p.nameid;
-                    const n = parseInt(sub, 10);
-                    return isNaN(n) ? 0 : n;
-                } catch { return 0; }
-            }
-
             if (!token) {
                 showBanner('Inicia sesión para usar el panel.', 'err');
                 subtitle.textContent = 'Sin sesión activa.';
-                statsRow.classList.add('d-none');
                 return;
             }
 
             if (isAdmin) {
                 adminRoot.classList.remove('d-none');
-                subtitle.textContent = 'Administración: crea auditorías, asigna auditores y revisa roles de usuario.';
+                subtitle.textContent = 'Crea y asigna auditorías.';
             } else if (isAuditor) {
                 auditorRoot.classList.remove('d-none');
-                statsRow.classList.remove('d-none');
-                subtitle.textContent = 'Tu espacio: primero lo que te asignaron. Crear una nueva es opcional y está en el botón superior.';
+                subtitle.textContent = 'Auditorías que te asignó un administrador.';
             } else {
                 clientRoot.classList.remove('d-none');
-                statsRow.classList.add('d-none');
                 subtitle.textContent = 'Acceso acotado según tu rol.';
             }
 
@@ -302,30 +236,6 @@
                 } catch { auditors = []; }
             }
 
-            async function loadAdminUsers() {
-                const tbody = document.getElementById('dash-admin-users-body');
-                if (!tbody) return;
-                try {
-                    const res = await fetch(API_BASE + '/auth/users', { headers: { 'Authorization': 'Bearer ' + token } });
-                    if (!res.ok) {
-                        tbody.innerHTML = '<tr><td colspan="4" class="small text-warning px-3 py-3">No se pudieron cargar los usuarios.</td></tr>';
-                        return;
-                    }
-                    const users = await res.json();
-                    if (!users.length) {
-                        tbody.innerHTML = '<tr><td colspan="4" class="small text-secondary px-3 py-3">No hay usuarios.</td></tr>';
-                        return;
-                    }
-                    tbody.innerHTML = users.map(u => {
-                        const r = (u.role || '').toUpperCase();
-                        const cls = r === 'AUDITOR' ? ' text-info fw-semibold' : (r === 'ADMIN' ? ' text-warning fw-semibold' : '');
-                        return '<tr><td>' + u.id + '</td><td>' + escapeHtml(u.name) + '</td><td>' + escapeHtml(u.email) + '</td><td class="' + cls + '">' + escapeHtml(u.role) + '</td></tr>';
-                    }).join('');
-                } catch {
-                    tbody.innerHTML = '<tr><td colspan="4" class="small text-danger px-3 py-3">Error de red.</td></tr>';
-                }
-            }
-
             async function loadRecentAudits() {
                 const wrap = document.getElementById('dash-recent-wrap');
                 if (!wrap) return;
@@ -339,18 +249,39 @@
                         wrap.innerHTML = '<p class="small mb-0" style="color:var(--ap-muted)">Aún no hay auditorías.</p>';
                         return;
                     }
-                    const top = data.slice(0, 10);
-                    wrap.innerHTML = '<ul class="list-unstyled mb-0 dash-recent-list">' + top.map(a => {
+                    wrap.innerHTML = '<ul class="list-unstyled mb-0 dash-recent-list">' + data.map(a => {
                         const assignBlock = '<div class="mt-2 d-flex flex-wrap gap-2 align-items-center">' +
-                            '<select class="form-select form-select-sm audit-input dash-row-assign" data-audit-id="' + a.id + '" style="max-width:15rem">' + auditorOptionsHtml(a.assignedToUserId) + '</select>' +
-                            '<button type="button" class="btn btn-sm btn-glow dash-row-assign-btn" data-audit-id="' + a.id + '">Asignar</button></div>';
+                            '<select class="form-select form-select-sm audit-input dash-row-assign" data-audit-id="' + a.id + '">' + auditorOptionsHtml(a.assignedToUserId) + '</select>' +
+                            '<button type="button" class="btn btn-sm btn-glow dash-row-assign-btn" data-audit-id="' + a.id + '">Asignar</button>' +
+                            '<button type="button" class="btn btn-sm btn-outline-danger dash-row-delete-btn" data-audit-id="' + a.id + '">Eliminar</button></div>';
                         return '<li class="dash-recent-item pb-3 mb-3 border-bottom border-secondary border-opacity-25">' +
                             '<div class="d-flex justify-content-between gap-2 flex-wrap">' +
                             '<div><span class="badge rounded-pill audit-status-' + String(a.status || '').toLowerCase() + '">' + escapeHtml(a.status || '') + '</span>' +
                             '<div class="fw-semibold text-white mt-1">' + escapeHtml(a.title) + '</div>' +
                             '<div class="small" style="color:var(--ap-muted)">' + escapeHtml(a.sede || '') + ' · ' + escapeHtml(a.assignedToUserName || 'Sin asignar') + '</div></div>' +
-                            '<a class="btn btn-sm btn-gradient align-self-start" href="/Auditorias/Detalle/' + a.id + '">Checklist</a></div>' + assignBlock + '</li>';
+                            '<a class="btn btn-sm btn-gradient align-self-start" href="/Auditorias/Detalle/' + a.id + '">Acta / PDF</a></div>' + assignBlock + '</li>';
                     }).join('') + '</ul>';
+
+                    wrap.querySelectorAll('.dash-row-delete-btn').forEach(btn => {
+                        btn.addEventListener('click', async () => {
+                            const id = parseInt(btn.getAttribute('data-audit-id'), 10);
+                            if (!confirm('¿Eliminar esta auditoría? No se puede deshacer.')) return;
+                            btn.disabled = true;
+                            try {
+                                const r = await fetch(API_BASE + '/audits/' + id, {
+                                    method: 'DELETE',
+                                    headers: { 'Authorization': 'Bearer ' + token }
+                                });
+                                if (r.status === 204 || r.ok) {
+                                    formAlert('Auditoría eliminada.', true);
+                                    await loadRecentAudits();
+                                } else if (r.status === 405) {
+                                    formAlert('Eliminar no disponible: reinicia la API (Ctrl+C y dotnet run).', false);
+                                } else formAlert('No se pudo eliminar (HTTP ' + r.status + ').', false);
+                            } catch { formAlert('Error de red.', false); }
+                            finally { btn.disabled = false; }
+                        });
+                    });
 
                     wrap.querySelectorAll('.dash-row-assign-btn').forEach(btn => {
                         btn.addEventListener('click', async () => {
@@ -370,7 +301,6 @@
                                 if (!r.ok) { formAlert(d.error || 'No se pudo asignar.', false); return; }
                                 formAlert('Asignación guardada.', true);
                                 await loadRecentAudits();
-                                await loadStats();
                             } catch {
                                 formAlert('Error de red.', false);
                             } finally {
@@ -390,95 +320,28 @@
                     '<div class="d-flex justify-content-between gap-2 flex-wrap align-items-start">' +
                     '<div><span class="badge rounded-pill audit-status-' + String(a.status || '').toLowerCase() + '">' + escapeHtml(a.status || '') + '</span>' +
                     '<div class="fw-semibold text-white mt-1">' + escapeHtml(a.title) + '</div>' +
-                    '<div class="small" style="color:var(--ap-muted)">' + escapeHtml(a.sede || '') + ' · Creador: ' + escapeHtml(a.createdBy || '') + '</div></div>' +
+                    '<div class="small" style="color:var(--ap-muted)">' + escapeHtml(a.sede || '') + '</div></div>' +
                     '<a class="btn btn-sm btn-gradient" href="/Auditorias/Detalle/' + a.id + '">Checklist</a></div></li>'
                 ).join('') + '</ul>';
             }
 
             async function loadAuditorAudits() {
-                const myId = getUserId();
-                if (!myId) {
-                    auditorAlert('Cierra sesión y vuelve a entrar para refrescar tu perfil (falta id de usuario).', false);
-                    return;
-                }
                 const wA = document.getElementById('dash-auditor-assigned-wrap');
-                const wC = document.getElementById('dash-auditor-created-wrap');
                 try {
                     const res = await fetch(API_BASE + '/audits', { headers: { 'Authorization': 'Bearer ' + token } });
                     if (!res.ok) throw new Error();
                     const all = await res.json();
-                    const assigned = all.filter(a => a.assignedToUserId != null && parseInt(a.assignedToUserId, 10) === myId);
-                    const createdOther = all.filter(a =>
-                        parseInt(a.createdByUserId, 10) === myId &&
-                        (a.assignedToUserId == null || parseInt(a.assignedToUserId, 10) !== myId)
-                    );
-                    wA.innerHTML = renderAuditList(assigned, 'Nada asignado a ti por ahora. Cuando un admin te delegue una visita, aparecerá aquí.');
-                    wC.innerHTML = renderAuditList(createdOther, 'No tienes otras auditorías creadas por ti fuera de la bandeja asignada.');
+                    wA.innerHTML = renderAuditList(all, 'Nada asignado a ti por ahora. Cuando un admin te delegue una visita, aparecerá aquí.');
                 } catch {
-                    wA.innerHTML = wC.innerHTML = '<p class="small text-danger mb-0">No se pudo cargar.</p>';
+                    wA.innerHTML = '<p class="small text-danger mb-0">No se pudo cargar.</p>';
                 }
-            }
-
-            async function loadStats() {
-                if (isClient) return;
-                const btn = document.getElementById('btn-refresh');
-                btn.disabled = true;
-                try {
-                    const res = await fetch(API_BASE + '/audits/stats', {
-                        headers: { 'Authorization': 'Bearer ' + token, 'Accept': 'application/json' }
-                    });
-                    if (res.status === 401) {
-                        showBanner('Sesión expirada.', 'err');
-                        return;
-                    }
-                    if (res.status === 403) {
-                        document.getElementById('stat-total').textContent = '—';
-                        document.getElementById('stat-approved').textContent = '—';
-                        document.getElementById('stat-drafts').textContent = '—';
-                        document.getElementById('stat-rate').textContent = '—';
-                        showBanner('Sin permiso para estadísticas globales.', 'err');
-                        return;
-                    }
-                    if (!res.ok) {
-                        const body = await res.text().catch(() => '');
-                        let msg = 'Error HTTP ' + res.status + ' en estadísticas.';
-                        if (body.indexOf('no such column') >= 0) msg = 'Base SQLite desactualizada: reinicia la API o borra backend.db.';
-                        showBanner(msg, 'err');
-                        return;
-                    }
-                    const data = await res.json();
-                    animateNumber('stat-total', data.totalAudits);
-                    animateNumber('stat-approved', data.approved);
-                    animateNumber('stat-drafts', data.drafts);
-                    document.getElementById('stat-rate').textContent = (data.completionRate ?? 0) + '%';
-                    hideBanner();
-                } catch {
-                    showBanner('No se pudo contactar la API.', 'err');
-                } finally {
-                    btn.disabled = false;
-                }
-            }
-
-            function animateNumber(id, end) {
-                const el = document.getElementById(id);
-                const target = Number(end) || 0;
-                let cur = 0;
-                const step = Math.max(1, Math.ceil(target / 25));
-                const t = setInterval(() => {
-                    cur += step;
-                    if (cur >= target) { cur = target; clearInterval(t); }
-                    el.textContent = cur;
-                }, 20);
             }
 
             document.getElementById('btn-refresh').addEventListener('click', async () => {
                 if (isAdmin) {
                     await loadAuditors();
-                    await loadStats();
                     await loadRecentAudits();
-                    await loadAdminUsers();
                 } else if (isAuditor) {
-                    await loadStats();
                     await loadAuditorAudits();
                 }
             });
@@ -517,9 +380,7 @@
                     if (!res.ok) { formAlert(data.error || 'No se pudo guardar.', false); return; }
                     formAlert('Auditoría creada.', true, data.id);
                     e.target.reset();
-                    await loadStats();
                     await loadRecentAudits();
-                    await loadAdminUsers();
                 } catch {
                     formAlert('Sin conexión con la API.', false);
                 } finally {
@@ -530,11 +391,8 @@
             (async function init() {
                 if (isAdmin) {
                     await loadAuditors();
-                    await loadStats();
                     await loadRecentAudits();
-                    await loadAdminUsers();
                 } else if (isAuditor) {
-                    await loadStats();
                     await loadAuditorAudits();
                 }
             })();

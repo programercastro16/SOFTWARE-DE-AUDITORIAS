@@ -11,14 +11,22 @@ public static class DtoMapper
     public static AuditItemDto ToDto(this AuditItem item)
     {
         var (pa, par, pi) = AuditItemScoring.GetTriple(item);
-        return new(item.Id, item.Code, item.Label, item.Weight, item.Score, item.Category, item.Observations, pa, par, pi);
+        var code = AuditActaHelper.ResolveGradeCode(item);
+        return new(item.Id, item.Code, item.Label, item.Weight, item.Score, item.Category, item.Observations,
+            pa, par, pi, code, AuditActaHelper.GetGradeLabel(code));
     }
+
+    public static SignatureDto ToDto(this Signature sig)
+        => new(sig.Id, sig.AuditId, sig.SignedBy, sig.SignerName, sig.ImagePath, sig.CreatedAt);
 
     public static EvidenceDto ToDto(this Evidence evidence)
         => new(evidence.Id, evidence.AuditId, evidence.FilePath, evidence.CreatedAt);
 
     public static AuditDto ToDto(this Audit audit)
-        => new(
+    {
+        var summary = AuditActaHelper.ComputeSummary(audit.Items);
+        var signatures = audit.Signatures?.Select(s => s.ToDto()).ToList() ?? [];
+        return new(
             audit.Id,
             audit.Title,
             audit.InternalName,
@@ -34,5 +42,12 @@ public static class DtoMapper
             audit.AssignedToUser?.Name,
             audit.ScheduledVisitDate?.ToString("o"),
             audit.Items.Select(i => i.ToDto()).ToList(),
-            audit.Evidences.Select(e => e.ToDto()).ToList());
+            audit.Evidences.Select(e => e.ToDto()).ToList(),
+            signatures,
+            AuditActaHelper.IsActaComplete(audit.Items),
+            summary.CompliancePercent,
+            summary.ProgressPercent,
+            summary.Concepto,
+            signatures.Count > 0);
+    }
 }

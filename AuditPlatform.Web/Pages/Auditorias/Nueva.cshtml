@@ -69,6 +69,12 @@
 
             if (!token) { show('Debes iniciar sesión primero.', false); return; }
 
+            if (role === 'AUDITOR') {
+                show('Solo los administradores pueden crear auditorías.', false);
+                setTimeout(() => { window.location.href = '/Dashboard'; }, 1500);
+                return;
+            }
+
             if (role === 'ADMIN') {
                 document.getElementById('wrap-assign').style.display = 'block';
                 fetch(API + '/auth/auditors', { headers: { 'Authorization': 'Bearer ' + token } })

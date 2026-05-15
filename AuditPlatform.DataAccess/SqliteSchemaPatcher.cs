@@ -50,6 +50,7 @@ public static class SqliteSchemaPatcher
         ("AuditItems", "PointsA", "REAL NOT NULL DEFAULT 0"),
         ("AuditItems", "PointsAR", "REAL NOT NULL DEFAULT 0"),
         ("AuditItems", "PointsI", "REAL NOT NULL DEFAULT 0"),
+        ("Signatures", "SignerName", "TEXT NOT NULL DEFAULT ''"),
     ];
 
     private static bool ColumnExists(DbConnection conn, string table, string column)

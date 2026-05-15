@@ -37,5 +37,6 @@ public class Audit
 
     public List<AuditItem> Items { get; set; } = new();
     public List<Evidence> Evidences { get; set; } = new();
+    public List<Signature> Signatures { get; set; } = new();
 }
 

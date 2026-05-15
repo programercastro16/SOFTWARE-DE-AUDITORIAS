@@ -6,20 +6,89 @@
     var auditId = RouteData.Values["id"]?.ToString() ?? "0";
 }
 
-<div class="mb-3">
+<div class="mb-3 d-flex flex-wrap gap-2 align-items-center">
     <a class="btn btn-sm btn-glow" asp-page="/Auditorias/Index">← Volver al listado</a>
+    <button type="button" class="btn btn-sm btn-outline-danger d-none" id="btn-delete-audit">Eliminar auditoría</button>
 </div>
+
 <div id="det-alert" class="alert d-none mb-3 border-0"></div>
 
 <div id="det-shell" class="d-none">
     <div id="det-head" class="hero-panel mb-4"></div>
-    <div class="glass-card p-4 p-md-5 text-center acta-launch-card">
+
+    <div id="det-workflow" class="glass-card p-3 p-md-4 mb-4">
+        <p class="small text-uppercase mb-2" style="letter-spacing:.12em;color:var(--ap-muted)">Pasos del acta</p>
+        <div class="det-workflow-steps">
+            <span class="det-step" data-step="1">1. Calificar aspectos</span>
+            <span class="det-step-arrow">→</span>
+            <span class="det-step" data-step="2">2. Guardar en servidor</span>
+            <span class="det-step-arrow">→</span>
+            <span class="det-step" data-step="3">3. Firmar</span>
+            <span class="det-step-arrow">→</span>
+            <span class="det-step" data-step="4">4. Descargar PDF</span>
+        </div>
+    </div>
+
+    <div id="det-summary" class="glass-card p-4 p-md-5 mb-4">
+        <h2 class="h5 text-white mb-3">Resumen del acta</h2>
+        <div class="row g-3">
+            <div class="col-md-4">
+                <p class="small mb-1" style="color:var(--ap-muted)">Progreso</p>
+                <p class="h4 text-white mb-0" id="det-prog-pct">0%</p>
+            </div>
+            <div class="col-md-4">
+                <p class="small mb-1" style="color:var(--ap-muted)">% Cumplimiento</p>
+                <p class="h4 text-white mb-0" id="det-cump-pct">0%</p>
+            </div>
+            <div class="col-md-4">
+                <p class="small mb-1" style="color:var(--ap-muted)">Concepto</p>
+                <p class="h5 mb-0" id="det-concepto">—</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="glass-card p-4 p-md-5 text-center acta-launch-card mb-4">
         <p class="text-white fw-semibold mb-2">Acta de auditoría interna</p>
-        <p class="small mb-4 mx-auto" style="max-width: 36rem; color: var(--ap-muted);">
-            El formulario sigue el formato por aspectos (A, AR, I), observaciones y cálculo de % de cumplimiento.
-            Se abre en una ventana para que completes con calma y veas el avance.
+        <p class="small mb-4 mx-auto" style="max-width: 40rem; color: var(--ap-muted);">
+            Califica cada aspecto con <strong class="text-white">CP</strong> (conforme pleno),
+            <strong class="text-white">CR</strong> (conforme con reparo) o
+            <strong class="text-white">NC</strong> (no conforme). Los puntos se calculan igual que en el formato CUZCO.
         </p>
-        <button type="button" class="btn btn-gradient btn-lg px-5" id="btn-open-acta">Abrir acta de auditoría</button>
+        <button type="button" class="btn btn-gradient btn-lg px-5" id="btn-open-acta">Abrir y calificar acta</button>
+    </div>
+
+    <div id="det-closure" class="glass-card p-4 p-md-5">
+        <h2 class="h5 text-white mb-2">Cierre del acta — firma y PDF</h2>
+        <div id="det-closure-lock" class="alert border-0 mb-3" style="background:rgba(255,193,7,.12);color:#ffe082;">
+            <strong>Paso pendiente:</strong> abre el acta, califica todos los aspectos (CP / CR / NC) y pulsa
+            <strong>Guardar calificaciones</strong>. Los datos se guardan en la base de datos del servidor.
+        </div>
+        <p class="small mb-3" style="color: var(--ap-muted);">
+            Luego firma en el recuadro y descarga el PDF con calificaciones, observaciones y % de cumplimiento.
+        </p>
+        <div id="det-sig-list" class="mb-4"></div>
+        <div id="det-closure-actions" class="det-closure-actions--locked row g-4 align-items-start">
+            <div class="col-lg-6">
+                <label class="form-label small text-uppercase" style="color:var(--ap-muted)">Nombre del firmante</label>
+                <input type="text" class="form-control audit-input mb-3" id="sig-name" maxlength="120" placeholder="Tu nombre completo" />
+                <label class="form-label small text-uppercase" style="color:var(--ap-muted)">Firma (dibuje en el recuadro)</label>
+                <div class="sig-pad-wrap">
+                    <canvas id="sig-canvas" class="sig-canvas" width="480" height="160"></canvas>
+                </div>
+                <div class="d-flex flex-wrap gap-2 mt-2">
+                    <button type="button" class="btn btn-glow btn-sm" id="sig-clear">Limpiar firma</button>
+                    <button type="button" class="btn btn-gradient btn-sm" id="sig-save">Guardar firma</button>
+                </div>
+            </div>
+            <div class="col-lg-6 d-flex flex-column gap-2 justify-content-center">
+                <button type="button" class="btn btn-gradient px-4" id="btn-download-pdf">
+                    ↓ Descargar PDF del acta
+                </button>
+                <p class="small mb-0" style="color:var(--ap-muted);" id="pdf-hint">
+                    Disponible cuando el acta esté calificada por completo.
+                </p>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -28,30 +97,52 @@
     <div class="acta-modal-dialog glass-card border-0" role="dialog" aria-modal="true" aria-labelledby="acta-modal-title">
         <div class="acta-modal-toolbar">
             <div>
-                <p class="small text-uppercase mb-1" style="letter-spacing: .18em; color: var(--ap-muted);">Carrascal Zamarra · Formato tipo acta</p>
-                <h2 id="acta-modal-title" class="h5 text-white mb-0">FORMATO ACTA DE AUDITORÍA INTERNA</h2>
+                <p class="small text-uppercase mb-1" style="letter-spacing: .18em; color: var(--ap-muted);">Carrascal Zamarra · Acta interna</p>
+                <h2 id="acta-modal-title" class="h5 text-white mb-0">Calificación por aspectos</h2>
             </div>
             <button type="button" class="btn btn-glow btn-sm" id="acta-modal-close" aria-label="Cerrar">✕</button>
         </div>
         <div class="acta-modal-progress px-3 py-3 border-bottom border-secondary border-opacity-25">
-            <div class="d-flex justify-content-between small mb-1" style="color: var(--ap-muted);">
-                <span>Progreso (ítems calificados)</span>
-                <span id="acta-prog-label" class="text-white fw-semibold">0%</span>
+            <div class="row g-3 mb-2">
+                <div class="col-md-4">
+                    <div class="acta-stat-pill">
+                        <span class="acta-stat-label">Progreso</span>
+                        <span class="acta-stat-value" id="acta-prog-label">0%</span>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="acta-stat-pill">
+                        <span class="acta-stat-label">Cumplimiento</span>
+                        <span class="acta-stat-value" id="acta-cump-label">0%</span>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="acta-stat-pill">
+                        <span class="acta-stat-label">Concepto</span>
+                        <span class="acta-stat-value acta-stat-value--sm" id="acta-concepto">—</span>
+                    </div>
+                </div>
             </div>
-            <div class="acta-progress-track mb-3"><div id="acta-prog-bar" class="acta-progress-bar" style="width:0%"></div></div>
-            <div class="d-flex flex-wrap justify-content-between gap-2 small">
-                <span style="color: var(--ap-muted);">% Cumplimiento (sobre puntos máx.): <strong class="text-white" id="acta-cump-label">0%</strong></span>
-                <span id="acta-concepto" class="fw-semibold">—</span>
+            <div class="acta-progress-track mb-3"><div id="acta-prog-bar" class="acta-progress-bar" style="width:0%"></div>
+            <div class="acta-legend row g-2 small">
+                <div class="col-md-4">
+                    <span class="acta-legend-chip acta-legend-chip--cp">CP</span>
+                    <strong class="text-white">Conforme pleno</strong> — puntaje máximo
+                </div>
+                <div class="col-md-4">
+                    <span class="acta-legend-chip acta-legend-chip--cr">CR</span>
+                    <strong class="text-white">Conforme con reparo</strong> — puntaje parcial
+                </div>
+                <div class="col-md-4">
+                    <span class="acta-legend-chip acta-legend-chip--nc">NC</span>
+                    <strong class="text-white">No conforme</strong> — sin puntos
+                </div>
             </div>
-            <p class="small mb-0 mt-2" style="color: var(--ap-muted); opacity: .85;">
-                <strong class="text-white">A</strong> aceptable pleno · <strong class="text-white">AR</strong> aceptable con observación · <strong class="text-white">I</strong> inaceptable.
-                Concepto: favorable ≥90% · favorable con requerimiento 60–89.9% · desfavorable &lt;60%.
-            </p>
         </div>
         <div class="acta-modal-body" id="acta-modal-body"></div>
         <div class="acta-modal-footer">
             <button type="button" class="btn btn-glow" id="acta-modal-close-2">Cerrar</button>
-            <button type="button" class="btn btn-gradient px-4" id="acta-btn-save">Guardar acta</button>
+            <button type="button" class="btn btn-gradient px-4" id="acta-btn-save">Guardar calificaciones</button>
         </div>
     </div>
 </div>
@@ -62,8 +153,17 @@
             const API = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(apiBase));
             const AUDIT_ID = parseInt(@Html.Raw(System.Text.Json.JsonSerializer.Serialize(auditId)), 10);
             const token = sessionStorage.getItem('audit_access_token');
+            const role = (sessionStorage.getItem('audit_user_role') || '').trim();
+            const userName = sessionStorage.getItem('audit_user_name') || '';
+            const isAdmin = role === 'ADMIN';
             const alertEl = document.getElementById('det-alert');
             let auditData = null;
+
+            const GRADES = [
+                { code: 'CP', key: 'cp', lbl: 'CP', title: 'Conforme pleno', hint: 'Cumple totalmente' },
+                { code: 'CR', key: 'cr', lbl: 'CR', title: 'Con reparo', hint: 'Cumple con observación' },
+                { code: 'NC', key: 'nc', lbl: 'NC', title: 'No conforme', hint: 'No cumple' }
+            ];
 
             function show(msg, ok) {
                 alertEl.className = 'alert mb-3 border-0 ' + (ok ? 'alert-success' : 'alert-danger');
@@ -90,9 +190,9 @@
 
             function triple(it) {
                 const pa = Number(it.pointsA), par = Number(it.pointsAR), pi = Number(it.pointsI);
-                if (pa > 0 || par > 0 || pi > 0) return [pa, par, pi];
+                if (pa > 0 || par > 0 || pi > 0) return { cp: pa, cr: par, nc: pi };
                 const w = Number(it.weight) || 0;
-                return [w, Math.round(w / 2 * 100) / 100, 0];
+                return { cp: w, cr: Math.round(w / 2 * 100) / 100, nc: 0 };
             }
 
             function groupByCategory(items) {
@@ -110,70 +210,164 @@
                 const total = sets.length;
                 let answered = 0, earned = 0, maxSum = 0;
                 sets.forEach(fs => {
-                    const pa = parseFloat(fs.dataset.pa), par = parseFloat(fs.dataset.par), pi = parseFloat(fs.dataset.pi);
+                    const pa = parseFloat(fs.dataset.cp);
                     maxSum += pa;
                     const r = fs.querySelector('input[type="radio"]:checked');
-                    if (r) {
-                        answered++;
-                        earned += parseFloat(r.value, 10) || 0;
-                    }
+                    if (r) { answered++; earned += parseFloat(r.value, 10) || 0; }
                 });
                 const prog = total ? Math.round(answered / total * 1000) / 10 : 0;
                 const cump = maxSum > 0 ? Math.round(earned / maxSum * 1000) / 10 : 0;
                 document.getElementById('acta-prog-label').textContent = prog + '%';
                 document.getElementById('acta-prog-bar').style.width = prog + '%';
                 document.getElementById('acta-cump-label').textContent = cump + '%';
-                let conc = '—';
+                let conc = '—', cls = 'text-secondary';
                 if (answered === total && total > 0) {
-                    if (cump >= 90) conc = 'Favorable';
-                    else if (cump >= 60) conc = 'Favorable con requerimiento';
-                    else conc = 'Desfavorable';
+                    if (cump >= 90) { conc = 'Favorable'; cls = 'text-success'; }
+                    else if (cump >= 60) { conc = 'Favorable con requerimiento'; cls = 'text-warning'; }
+                    else { conc = 'Desfavorable'; cls = 'text-danger'; }
                 }
-                document.getElementById('acta-concepto').textContent = conc;
-                document.getElementById('acta-concepto').className = 'fw-semibold ' + (conc === 'Favorable' ? 'text-success' : conc.indexOf('requerimiento') >= 0 ? 'text-warning' : conc === 'Desfavorable' ? 'text-danger' : 'text-secondary');
+                const el = document.getElementById('acta-concepto');
+                el.textContent = conc;
+                el.className = 'acta-stat-value acta-stat-value--sm fw-semibold ' + cls;
+            }
+
+            function gradeRadios(it, pts) {
+                const sc = Number(it.score);
+                const unset = sc < -0.5;
+                return GRADES.map(g => {
+                    const val = pts[g.key];
+                    const chk = !unset && nearly(sc, val) ? ' checked' : '';
+                    return '<label class="acta-grade acta-grade--' + g.key + '">' +
+                        '<input type="radio" name="acta-it-' + it.id + '" value="' + val + '"' + chk + ' />' +
+                        '<span class="acta-grade-card">' +
+                        '<span class="acta-grade-code">' + g.lbl + '</span>' +
+                        '<span class="acta-grade-pts">' + fmtNum(val) + ' pts</span>' +
+                        '<span class="acta-grade-title">' + g.title + '</span>' +
+                        '<span class="acta-grade-hint">' + g.hint + '</span></span></label>';
+                }).join('');
             }
 
             function buildActaBody() {
                 const groups = groupByCategory(auditData.items);
                 const body = document.getElementById('acta-modal-body');
-                body.innerHTML = Object.keys(groups).map(cat => {
-                    const items = groups[cat];
-                    return '<section class="acta-section mb-4"><h3 class="acta-section-title">' + safe(cat) + '</h3>' +
+                const catKeys = Object.keys(groups).sort();
+                body.innerHTML = catKeys.map((cat, ci) => {
+                    const items = groups[cat].sort((a, b) => String(a.code).localeCompare(b.code));
+                    return '<section class="acta-section mb-2">' +
+                        '<button type="button" class="acta-section-toggle' + (ci === 0 ? ' is-open' : '') + '" data-acta-section="' + ci + '">' +
+                        '<span class="acta-section-num">' + (ci + 1) + '</span>' +
+                        '<span class="acta-section-title-text">' + safe(cat) + '</span>' +
+                        '<span class="acta-section-count">' + items.length + ' aspectos</span>' +
+                        '<span class="acta-section-chevron">▼</span></button>' +
+                        '<div class="acta-section-panel' + (ci === 0 ? '' : ' d-none') + '" data-acta-panel="' + ci + '">' +
                         items.map(it => {
-                            const [pa, par, pi] = triple(it);
-                            const sc = Number(it.score);
-                            const chkA = nearly(sc, pa) ? ' checked' : '';
-                            const chkAR = nearly(sc, par) ? ' checked' : '';
-                            const chkI = nearly(sc, pi) ? ' checked' : '';
-                            const unset = sc < -0.5;
-                            const cA = unset ? '' : chkA;
-                            const cAR = unset ? '' : chkAR;
-                            const cI = unset ? '' : chkI;
-                            return '<fieldset class="acta-item mb-4 pb-4 border-bottom border-secondary border-opacity-25" data-item-id="' + it.id + '" data-pa="' + pa + '" data-par="' + par + '" data-pi="' + pi + '">' +
-                                '<div class="row g-3 align-items-start">' +
-                                '<div class="col-lg-6"><div class="d-flex gap-2 mb-1"><span class="badge bg-dark border border-secondary">' + safe(it.code) + '</span></div>' +
-                                '<p class="text-white mb-0 small">' + safe(it.label) + '</p></div>' +
-                                '<div class="col-lg-6">' +
-                                '<p class="small text-uppercase mb-2" style="color:var(--ap-muted); letter-spacing:.1em;">Calificación</p>' +
-                                '<div class="acta-circles d-flex flex-wrap gap-3">' +
-                                '<label class="acta-circle"><input type="radio" name="acta-it-' + it.id + '" value="' + pa + '"' + cA + ' /><span class="acta-circle-ui"><span class="acta-circle-num">' + fmtNum(pa) + '</span><span class="acta-circle-lbl">A</span></span></label>' +
-                                '<label class="acta-circle"><input type="radio" name="acta-it-' + it.id + '" value="' + par + '"' + cAR + ' /><span class="acta-circle-ui"><span class="acta-circle-num">' + fmtNum(par) + '</span><span class="acta-circle-lbl">AR</span></span></label>' +
-                                '<label class="acta-circle"><input type="radio" name="acta-it-' + it.id + '" value="' + pi + '"' + cI + ' /><span class="acta-circle-ui"><span class="acta-circle-num">' + fmtNum(pi) + '</span><span class="acta-circle-lbl">I</span></span></label>' +
-                                '</div>' +
-                                '<label class="form-label small mt-3" style="color:var(--ap-muted)">Observaciones</label>' +
-                                '<textarea class="form-control audit-input acta-obs" rows="2" data-obs-for="' + it.id + '" placeholder="Hallazgos u observaciones del aspecto…">' + escapeHtml(it.observations || '') + '</textarea>' +
-                                '</div></div></fieldset>';
-                        }).join('') + '</section>';
+                            const pts = triple(it);
+                            return '<fieldset class="acta-item" data-item-id="' + it.id + '" data-cp="' + pts.cp + '">' +
+                                '<div class="acta-item-head">' +
+                                '<span class="acta-item-code">' + safe(it.code) + '</span>' +
+                                '<p class="acta-item-label">' + safe(it.label) + '</p></div>' +
+                                '<p class="acta-item-sub">Seleccione una calificación</p>' +
+                                '<div class="acta-grades">' + gradeRadios(it, pts) + '</div>' +
+                                '<label class="form-label small mt-3 acta-obs-label">Observaciones del aspecto</label>' +
+                                '<textarea class="form-control audit-input acta-obs" rows="2" data-obs-for="' + it.id + '" placeholder="Hallazgos, evidencias o acciones correctivas…">' +
+                                escapeHtml(it.observations || '') + '</textarea></fieldset>';
+                        }).join('') + '</div></section>';
                 }).join('');
+
+                body.querySelectorAll('.acta-section-toggle').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        const i = btn.getAttribute('data-acta-section');
+                        const panel = body.querySelector('[data-acta-panel="' + i + '"]');
+                        const open = btn.classList.toggle('is-open');
+                        panel.classList.toggle('d-none', !open);
+                    });
+                });
                 updateActaStats();
             }
 
-            document.getElementById('acta-modal').addEventListener('change', function (e) {
-                if (e.target && e.target.matches && e.target.matches('input[type="radio"]')) updateActaStats();
-            });
-            document.getElementById('acta-modal').addEventListener('input', function (e) {
-                if (e.target && e.target.classList && e.target.classList.contains('acta-obs')) updateActaStats();
-            });
+            function computeActaFromItems(items) {
+                if (!items || !items.length) return { complete: false, progress: 0, compliance: 0, concepto: '—' };
+                let answered = 0, earned = 0, maxSum = 0;
+                items.forEach(it => {
+                    const pa = (Number(it.pointsA) > 0) ? Number(it.pointsA) : (Number(it.weight) || 0);
+                    maxSum += pa;
+                    const sc = Number(it.score);
+                    if (!isNaN(sc) && sc >= -0.5) { answered++; earned += sc; }
+                });
+                const total = items.length;
+                const progress = total ? Math.round(answered / total * 1000) / 10 : 0;
+                const compliance = maxSum > 0 ? Math.round(earned / maxSum * 1000) / 10 : 0;
+                let concepto = '—';
+                if (answered === total && total > 0) {
+                    if (compliance >= 90) concepto = 'Favorable';
+                    else if (compliance >= 60) concepto = 'Favorable con requerimiento';
+                    else concepto = 'Desfavorable';
+                }
+                return { complete: answered === total && total > 0, progress, compliance, concepto };
+            }
+
+            function getActaState() {
+                const local = computeActaFromItems(auditData?.items);
+                const complete = auditData?.isActaComplete === true || local.complete;
+                return {
+                    complete,
+                    progress: auditData?.progressPercent ?? local.progress,
+                    compliance: auditData?.compliancePercent ?? local.compliance,
+                    concepto: auditData?.actaConcepto && auditData.actaConcepto !== '—' ? auditData.actaConcepto : local.concepto
+                };
+            }
+
+            function refreshSummaryUi() {
+                if (!auditData) return;
+                const st = getActaState();
+                document.getElementById('det-prog-pct').textContent = st.progress + '%';
+                document.getElementById('det-cump-pct').textContent = st.compliance + '%';
+                const conc = document.getElementById('det-concepto');
+                conc.textContent = st.concepto;
+                conc.className = 'h5 mb-0 ' + (
+                    st.concepto === 'Favorable' ? 'text-success' :
+                    (st.concepto || '').indexOf('requerimiento') >= 0 ? 'text-warning' :
+                    st.concepto === 'Desfavorable' ? 'text-danger' : 'text-secondary');
+
+                document.getElementById('det-closure-lock').style.display = st.complete ? 'none' : 'block';
+                const actions = document.getElementById('det-closure-actions');
+                actions.classList.toggle('det-closure-actions--locked', !st.complete);
+
+                document.querySelectorAll('.det-step').forEach(el => {
+                    const n = parseInt(el.getAttribute('data-step'), 10);
+                    el.classList.remove('det-step--done', 'det-step--active');
+                    if (n === 1) el.classList.add(st.complete ? 'det-step--done' : 'det-step--active');
+                    else if (n === 2) el.classList.add(st.complete ? 'det-step--done' : '');
+                    else if (n === 3) el.classList.add((auditData.signatures || []).length ? 'det-step--done' : (st.complete ? 'det-step--active' : ''));
+                    else if (n === 4) el.classList.add(st.complete ? 'det-step--active' : '');
+                });
+
+                const sigs = auditData.signatures || [];
+                const list = document.getElementById('det-sig-list');
+                if (sigs.length) {
+                    list.innerHTML = '<p class="small mb-2" style="color:var(--ap-muted)">Firmas guardadas en el servidor:</p><ul class="list-unstyled mb-0">' +
+                        sigs.map(s => '<li class="d-flex align-items-center gap-3 mb-2">' +
+                            '<img src="' + API + '/' + String(s.imagePath || '').replace(/\\/g, '/') + '" alt="Firma" class="sig-thumb" onerror="this.style.display=\'none\'" />' +
+                            '<span><strong class="text-white">' + escapeHtml(s.signerName) + '</strong><br/>' +
+                            '<span class="small" style="color:var(--ap-muted)">' + new Date(s.createdAt).toLocaleString() + '</span></span></li>').join('') + '</ul>';
+                } else list.innerHTML = '';
+
+                document.getElementById('sig-save').disabled = !st.complete;
+                document.getElementById('btn-download-pdf').disabled = !st.complete;
+                document.getElementById('pdf-hint').textContent = st.complete
+                    ? 'El PDF se genera en el servidor con calificaciones, observaciones, % y firmas.'
+                    : 'Complete y guarde el acta para habilitar firma y PDF.';
+            }
+
+            async function checkApiFeatures() {
+                try {
+                    const r = await fetch(API + '/');
+                    const info = await r.json();
+                    if (!info.features || !info.features.includes('acta-pdf')) {
+                        show('La API está desactualizada (versión ' + (info.version || '?') + '). Detén la API con Ctrl+C y ejecuta de nuevo: dotnet run --project AuditPlatform.API\\AuditPlatform.API.csproj', false);
+                    }
+                } catch { /* ignore */ }
+            }
 
             function openActa() {
                 buildActaBody();
@@ -181,7 +375,6 @@
                 m.classList.remove('d-none');
                 m.setAttribute('aria-hidden', 'false');
                 document.body.classList.add('acta-modal-open');
-                updateActaStats();
             }
             function closeActa() {
                 const m = document.getElementById('acta-modal');
@@ -190,6 +383,10 @@
                 document.body.classList.remove('acta-modal-open');
             }
 
+            document.getElementById('acta-modal').addEventListener('change', e => {
+                if (e.target?.matches?.('input[type="radio"]')) updateActaStats();
+            });
+
             async function load() {
                 try {
                     const res = await fetch(API + '/audits/' + AUDIT_ID, { headers: { 'Authorization': 'Bearer ' + token } });
@@ -197,6 +394,8 @@
                     if (!res.ok) throw new Error();
                     auditData = await res.json();
                     document.getElementById('det-shell').classList.remove('d-none');
+                    if (isAdmin) document.getElementById('btn-delete-audit').classList.remove('d-none');
+
                     document.getElementById('det-head').innerHTML = `
                         <div class="d-flex flex-wrap justify-content-between gap-3">
                             <div>
@@ -206,9 +405,13 @@
                                 · Estado: <span class="badge audit-status-${(auditData.status || '').toLowerCase()}">${safe(auditData.status)}</span></p>
                             </div>
                             <div class="text-md-end small" style="color:var(--ap-muted)">
+                                ${auditData.assignedToUserName ? '<div><strong>Auditor:</strong> ' + safe(auditData.assignedToUserName) + '</div>' : ''}
                                 ${auditData.internalName ? '<div><strong>Ref:</strong> ' + safe(auditData.internalName) + '</div>' : ''}
                             </div>
                         </div>`;
+
+                    document.getElementById('sig-name').value = userName;
+                    refreshSummaryUi();
                 } catch {
                     show('Error al cargar la auditoría.', false);
                 }
@@ -227,11 +430,11 @@
                     const id = parseInt(fs.getAttribute('data-item-id'), 10);
                     const r = fs.querySelector('input[type="radio"]:checked');
                     if (!r) {
-                        show('Completa la calificación (A / AR / I) en todos los aspectos antes de guardar.', false);
+                        show('Califique todos los aspectos (CP, CR o NC) antes de guardar.', false);
                         return;
                     }
                     const obs = fs.querySelector('[data-obs-for="' + id + '"]');
-                    items.push({ id: id, score: parseFloat(r.value), observations: obs ? (obs.value || null) : null });
+                    items.push({ id, score: parseFloat(r.value), observations: obs ? (obs.value || null) : null });
                 }
                 try {
                     const res = await fetch(API + '/audits/' + AUDIT_ID + '/items', {
@@ -239,16 +442,118 @@
                         headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
                         body: JSON.stringify(items)
                     });
-                    if (res.ok) {
-                        show('Acta guardada correctamente.', true);
-                        const data = await fetch(API + '/audits/' + AUDIT_ID, { headers: { 'Authorization': 'Bearer ' + token } }).then(r => r.json());
-                        auditData = data;
-                        closeActa();
-                    } else show('No se pudo guardar.', false);
+                    if (!res.ok) {
+                        const err = await res.json().catch(() => ({}));
+                        show(err.error || 'No se pudo guardar. ¿Reiniciaste la API?', false);
+                        return;
+                    }
+                    show('Calificaciones guardadas en el servidor. Baja a «Cierre del acta» para firmar y descargar PDF.', true);
+                    const r2 = await fetch(API + '/audits/' + AUDIT_ID, { headers: { 'Authorization': 'Bearer ' + token } });
+                    auditData = await r2.json();
+                    refreshSummaryUi();
+                    closeActa();
+                    document.getElementById('det-closure').scrollIntoView({ behavior: 'smooth', block: 'start' });
                 } catch { show('Error de red.', false); }
             });
 
-            load();
+            /* Firma */
+            const canvas = document.getElementById('sig-canvas');
+            const ctx = canvas.getContext('2d');
+            let drawing = false;
+            ctx.strokeStyle = '#1a2544';
+            ctx.lineWidth = 2.2;
+            ctx.lineCap = 'round';
+
+            function pos(e) {
+                const r = canvas.getBoundingClientRect();
+                const t = e.touches?.[0];
+                const x = (t ? t.clientX : e.clientX) - r.left;
+                const y = (t ? t.clientY : e.clientY) - r.top;
+                return { x: x * (canvas.width / r.width), y: y * (canvas.height / r.height) };
+            }
+            function start(e) { e.preventDefault(); drawing = true; const p = pos(e); ctx.beginPath(); ctx.moveTo(p.x, p.y); }
+            function move(e) {
+                if (!drawing) return;
+                e.preventDefault();
+                const p = pos(e);
+                ctx.lineTo(p.x, p.y);
+                ctx.stroke();
+            }
+            function end() { drawing = false; }
+            canvas.addEventListener('mousedown', start);
+            canvas.addEventListener('mousemove', move);
+            canvas.addEventListener('mouseup', end);
+            canvas.addEventListener('mouseleave', end);
+            canvas.addEventListener('touchstart', start, { passive: false });
+            canvas.addEventListener('touchmove', move, { passive: false });
+            canvas.addEventListener('touchend', end);
+
+            document.getElementById('sig-clear').addEventListener('click', () => {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+            });
+
+            document.getElementById('sig-save').addEventListener('click', async () => {
+                const blank = !ctx.getImageData(0, 0, canvas.width, canvas.height).data.some((v, i) => i % 4 === 3 && v > 0);
+                if (blank) { show('Dibuje su firma en el recuadro.', false); return; }
+                const name = document.getElementById('sig-name').value.trim();
+                if (!name) { show('Indique el nombre del firmante.', false); return; }
+                try {
+                    const res = await fetch(API + '/audits/' + AUDIT_ID + '/signatures', {
+                        method: 'POST',
+                        headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ imageBase64: canvas.toDataURL('image/png'), signerName: name })
+                    });
+                    const txt = await res.text();
+                    let d = {}; try { d = txt ? JSON.parse(txt) : {}; } catch { }
+                    if (!res.ok) { show(d.error || 'No se pudo guardar la firma.', false); return; }
+                    show('Firma registrada.', true);
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    const r2 = await fetch(API + '/audits/' + AUDIT_ID, { headers: { 'Authorization': 'Bearer ' + token } });
+                    auditData = await r2.json();
+                    refreshSummaryUi();
+                } catch { show('Error de red.', false); }
+            });
+
+            document.getElementById('btn-download-pdf').addEventListener('click', async () => {
+                try {
+                    const res = await fetch(API + '/audits/' + AUDIT_ID + '/pdf', {
+                        headers: { 'Authorization': 'Bearer ' + token }
+                    });
+                    if (!res.ok) {
+                        const d = await res.json().catch(() => ({}));
+                        show(d.error || 'No se pudo generar el PDF.', false);
+                        return;
+                    }
+                    const blob = await res.blob();
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = 'Acta_' + AUDIT_ID + '.pdf';
+                    a.click();
+                    URL.revokeObjectURL(url);
+                } catch { show('Error al descargar PDF.', false); }
+            });
+
+            document.getElementById('btn-delete-audit')?.addEventListener('click', async () => {
+                if (!confirm('¿Eliminar esta auditoría y todos sus datos? Esta acción no se puede deshacer.')) return;
+                try {
+                    const res = await fetch(API + '/audits/' + AUDIT_ID, {
+                        method: 'DELETE',
+                        headers: { 'Authorization': 'Bearer ' + token }
+                    });
+                    if (res.status === 204 || res.ok) {
+                        window.location.href = '/Auditorias/Index';
+                        return;
+                    }
+                    if (res.status === 405) {
+                        show('Eliminar no disponible: reinicia la API (Ctrl+C y dotnet run).', false);
+                        return;
+                    }
+                    show('No se pudo eliminar (HTTP ' + res.status + ').', false);
+                } catch { show('Error de red.', false); }
+            });
+
+            load().then(() => checkApiFeatures());
         })();
     </script>
 }

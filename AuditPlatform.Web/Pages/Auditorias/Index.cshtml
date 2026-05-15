@@ -41,7 +41,7 @@
                 return;
             }
 
-            const canCreate = role === 'ADMIN' || role === 'AUDITOR';
+            const canCreate = role === 'ADMIN';
             document.querySelectorAll('[data-audit-new]').forEach(el => {
                 el.style.display = canCreate ? '' : 'none';
             });
@@ -71,7 +71,10 @@
                                     Creador: ${safe(a.createdBy || '')}<br/>
                                     Asignado: ${safe(a.assignedToUserName || 'Sin asignar')}
                                 </div>
-                                <a class="btn btn-glow btn-sm w-100" href="/Auditorias/Detalle/${a.id}">Abrir checklist</a>
+                                <div class="d-flex flex-wrap gap-2">
+                                    <a class="btn btn-glow btn-sm flex-grow-1" href="/Auditorias/Detalle/${a.id}">Acta / PDF</a>
+                                    ${role === 'ADMIN' ? '<button type="button" class="btn btn-sm btn-outline-danger audit-delete-btn" data-id="' + a.id + '">Eliminar</button>' : ''}
+                                </div>
                             </article>
                         </div>`).join('');
                 } catch (e) {
@@ -87,6 +90,26 @@
                 return String(s || '').replace(/\\/g, '\\\\').replace(/`/g, '\\`').replace(/\$\{/g, '\\${');
             }
             function safe(s) { return escapeTpl(escapeHtml(s)); }
+
+            listEl.addEventListener('click', async e => {
+                const btn = e.target.closest('.audit-delete-btn');
+                if (!btn) return;
+                const id = parseInt(btn.getAttribute('data-id'), 10);
+                if (!confirm('¿Eliminar esta auditoría? No se puede deshacer.')) return;
+                btn.disabled = true;
+                try {
+                    const res = await fetch(API + '/audits/' + id, {
+                        method: 'DELETE',
+                        headers: { 'Authorization': 'Bearer ' + token }
+                    });
+                    if (res.status === 204 || res.ok) {
+                        showAlert('Auditoría eliminada.', true);
+                        load();
+                    } else if (res.status === 405) {
+                        showAlert('Eliminar no disponible: reinicia la API (Ctrl+C y dotnet run).', false);
+                    } else showAlert('No se pudo eliminar (HTTP ' + res.status + ').', false);
+                } catch { showAlert('Error de red.', false); }
+            });
 
             document.getElementById('btn-reload').addEventListener('click', load);
             load();

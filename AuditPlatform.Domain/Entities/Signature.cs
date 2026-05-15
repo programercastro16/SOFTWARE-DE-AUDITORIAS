@@ -14,6 +14,9 @@ public class Signature
     [Required]
     public int SignedBy { get; set; }
 
+    /// <summary>Nombre legible del firmante (puede diferir del usuario si se captura en canvas).</summary>
+    public string SignerName { get; set; } = string.Empty;
+
     [Required]
     public string ImagePath { get; set; } = string.Empty;
 
