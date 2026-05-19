@@ -30,7 +30,6 @@ public class AuditPdfService
                 page.Header().Column(col =>
                 {
                     col.Item().Text("ACTA DE AUDITORÍA INTERNA").Bold().FontSize(16).FontColor(Colors.Blue.Darken3);
-                    col.Item().PaddingTop(4).Text("Formato Carrascal Zamarra · CUZCO").FontSize(9).Italic();
                     col.Item().PaddingTop(12).Row(row =>
                     {
                         row.RelativeItem().Column(c =>

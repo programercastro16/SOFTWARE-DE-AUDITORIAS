@@ -96,50 +96,25 @@
     <div class="acta-modal-backdrop" id="acta-modal-backdrop" tabindex="-1"></div>
     <div class="acta-modal-dialog glass-card border-0" role="dialog" aria-modal="true" aria-labelledby="acta-modal-title">
         <div class="acta-modal-toolbar">
-            <div>
-                <p class="small text-uppercase mb-1" style="letter-spacing: .18em; color: var(--ap-muted);">Carrascal Zamarra · Acta interna</p>
-                <h2 id="acta-modal-title" class="h5 text-white mb-0">Calificación por aspectos</h2>
-            </div>
+            <h2 id="acta-modal-title" class="h5 text-white mb-0">Calificación por aspectos</h2>
             <button type="button" class="btn btn-glow btn-sm" id="acta-modal-close" aria-label="Cerrar">✕</button>
         </div>
-        <div class="acta-modal-progress px-3 py-3 border-bottom border-secondary border-opacity-25">
-            <div class="row g-3 mb-2">
-                <div class="col-md-4">
-                    <div class="acta-stat-pill">
-                        <span class="acta-stat-label">Progreso</span>
-                        <span class="acta-stat-value" id="acta-prog-label">0%</span>
-                    </div>
+        <div id="acta-modal-scroll" class="acta-modal-scroll" tabindex="0">
+            <div class="acta-modal-stats px-3 py-2 border-bottom border-secondary border-opacity-25">
+                <div class="d-flex flex-wrap gap-3 mb-2 small" style="color:var(--ap-muted);">
+                    <span>Progreso: <strong id="acta-prog-label" class="text-white">0%</strong></span>
+                    <span>Cumplimiento: <strong id="acta-cump-label" class="text-white">0%</strong></span>
+                    <span>Concepto: <strong id="acta-concepto" class="text-white">—</strong></span>
                 </div>
-                <div class="col-md-4">
-                    <div class="acta-stat-pill">
-                        <span class="acta-stat-label">Cumplimiento</span>
-                        <span class="acta-stat-value" id="acta-cump-label">0%</span>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="acta-stat-pill">
-                        <span class="acta-stat-label">Concepto</span>
-                        <span class="acta-stat-value acta-stat-value--sm" id="acta-concepto">—</span>
-                    </div>
-                </div>
+                <div class="acta-progress-track mb-2"><div id="acta-prog-bar" class="acta-progress-bar" style="width:0%"></div></div>
+                <p class="small mb-0" style="color:var(--ap-muted);">
+                    <span class="acta-legend-chip acta-legend-chip--cp">CP</span> pleno ·
+                    <span class="acta-legend-chip acta-legend-chip--cr">CR</span> reparo ·
+                    <span class="acta-legend-chip acta-legend-chip--nc">NC</span> no conforme
+                </p>
             </div>
-            <div class="acta-progress-track mb-3"><div id="acta-prog-bar" class="acta-progress-bar" style="width:0%"></div>
-            <div class="acta-legend row g-2 small">
-                <div class="col-md-4">
-                    <span class="acta-legend-chip acta-legend-chip--cp">CP</span>
-                    <strong class="text-white">Conforme pleno</strong> — puntaje máximo
-                </div>
-                <div class="col-md-4">
-                    <span class="acta-legend-chip acta-legend-chip--cr">CR</span>
-                    <strong class="text-white">Conforme con reparo</strong> — puntaje parcial
-                </div>
-                <div class="col-md-4">
-                    <span class="acta-legend-chip acta-legend-chip--nc">NC</span>
-                    <strong class="text-white">No conforme</strong> — sin puntos
-                </div>
-            </div>
+            <div class="acta-modal-body" id="acta-modal-body" role="region" aria-label="Aspectos a calificar"></div>
         </div>
-        <div class="acta-modal-body" id="acta-modal-body"></div>
         <div class="acta-modal-footer">
             <button type="button" class="btn btn-glow" id="acta-modal-close-2">Cerrar</button>
             <button type="button" class="btn btn-gradient px-4" id="acta-btn-save">Guardar calificaciones</button>
@@ -174,6 +149,11 @@
             }
 
             if (!token || !AUDIT_ID) { show('Falta sesión o ID de auditoría.', false); return; }
+
+            const actaModalEl = document.getElementById('acta-modal');
+            if (actaModalEl && actaModalEl.parentElement !== document.body) {
+                document.body.appendChild(actaModalEl);
+            }
 
             function escapeHtml(s) {
                 return String(s || '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -228,7 +208,7 @@
                 }
                 const el = document.getElementById('acta-concepto');
                 el.textContent = conc;
-                el.className = 'acta-stat-value acta-stat-value--sm fw-semibold ' + cls;
+                el.className = 'text-white fw-semibold ' + cls;
             }
 
             function gradeRadios(it, pts) {
@@ -251,15 +231,16 @@
                 const groups = groupByCategory(auditData.items);
                 const body = document.getElementById('acta-modal-body');
                 const catKeys = Object.keys(groups).sort();
-                body.innerHTML = catKeys.map((cat, ci) => {
+                const scrollHint = '<p class="small acta-scroll-hint mb-3">↓ Desplázate con la rueda del mouse para ver todos los aspectos</p>';
+                body.innerHTML = scrollHint + catKeys.map((cat, ci) => {
                     const items = groups[cat].sort((a, b) => String(a.code).localeCompare(b.code));
                     return '<section class="acta-section mb-2">' +
-                        '<button type="button" class="acta-section-toggle' + (ci === 0 ? ' is-open' : '') + '" data-acta-section="' + ci + '">' +
+                        '<button type="button" class="acta-section-toggle is-open" data-acta-section="' + ci + '">' +
                         '<span class="acta-section-num">' + (ci + 1) + '</span>' +
                         '<span class="acta-section-title-text">' + safe(cat) + '</span>' +
                         '<span class="acta-section-count">' + items.length + ' aspectos</span>' +
                         '<span class="acta-section-chevron">▼</span></button>' +
-                        '<div class="acta-section-panel' + (ci === 0 ? '' : ' d-none') + '" data-acta-panel="' + ci + '">' +
+                        '<div class="acta-section-panel" data-acta-panel="' + ci + '">' +
                         items.map(it => {
                             const pts = triple(it);
                             return '<fieldset class="acta-item" data-item-id="' + it.id + '" data-cp="' + pts.cp + '">' +
@@ -375,6 +356,8 @@
                 m.classList.remove('d-none');
                 m.setAttribute('aria-hidden', 'false');
                 document.body.classList.add('acta-modal-open');
+                const scroll = document.getElementById('acta-modal-scroll');
+                if (scroll) scroll.scrollTop = 0;
             }
             function closeActa() {
                 const m = document.getElementById('acta-modal');
@@ -383,9 +366,27 @@
                 document.body.classList.remove('acta-modal-open');
             }
 
+            function preserveActaScroll(fn) {
+                const scroll = document.getElementById('acta-modal-scroll');
+                const top = scroll ? scroll.scrollTop : 0;
+                fn();
+                if (scroll) requestAnimationFrame(() => { scroll.scrollTop = top; });
+            }
+
             document.getElementById('acta-modal').addEventListener('change', e => {
-                if (e.target?.matches?.('input[type="radio"]')) updateActaStats();
+                if (!e.target?.matches?.('input[type="radio"]')) return;
+                e.target.blur();
+                preserveActaScroll(updateActaStats);
             });
+
+            document.getElementById('acta-modal').addEventListener('focusin', e => {
+                if (e.target?.matches?.('.acta-grade input[type="radio"]')) {
+                    const scroll = document.getElementById('acta-modal-scroll');
+                    const top = scroll ? scroll.scrollTop : 0;
+                    e.target.blur();
+                    if (scroll) scroll.scrollTop = top;
+                }
+            }, true);
 
             async function load() {
                 try {
@@ -412,8 +413,9 @@
 
                     document.getElementById('sig-name').value = userName;
                     refreshSummaryUi();
-                } catch {
-                    show('Error al cargar la auditoría.', false);
+                } catch (ex) {
+                    show('Error al cargar la auditoría. Comprueba que la API esté en marcha (http://localhost:5141).', false);
+                    console.error(ex);
                 }
             }
 

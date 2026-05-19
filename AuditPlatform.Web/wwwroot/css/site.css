@@ -1013,6 +1013,14 @@ body.acta-modal-open {
   overflow: hidden;
 }
 
+/* Evita que animaciones/transform del layout desplacen el modal fixed */
+body.acta-modal-open main,
+body.acta-modal-open .hero-panel,
+body.acta-modal-open .glass-card:not(.acta-modal-dialog) {
+  transform: none !important;
+  animation: none !important;
+}
+
 .acta-launch-card {
   animation: audit-form-in 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
@@ -1021,10 +1029,11 @@ body.acta-modal-open {
   position: fixed;
   inset: 0;
   z-index: 1080;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  display: grid;
+  place-items: center;
   padding: 1rem;
+  box-sizing: border-box;
+  overflow: hidden;
 }
 
 .acta-modal.d-none {
@@ -1032,39 +1041,82 @@ body.acta-modal-open {
 }
 
 .acta-modal-backdrop {
-  position: absolute;
+  position: fixed;
   inset: 0;
-  background: rgba(4, 8, 18, 0.72);
+  background: rgba(4, 8, 18, 0.78);
   backdrop-filter: blur(8px);
 }
 
 .acta-modal-dialog {
   position: relative;
   z-index: 1;
-  width: min(1080px, 100%);
-  max-height: min(92vh, 900px);
+  width: min(920px, calc(100vw - 2rem));
+  height: min(88vh, 800px);
+  max-height: calc(100vh - 1.5rem);
+  min-height: 280px;
+  margin: 0 auto;
+  transform: none !important;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 40px 120px rgba(0, 0, 0, 0.55);
-  border-radius: 22px;
+  box-shadow: 0 32px 100px rgba(0, 0, 0, 0.6);
+  border-radius: 20px;
   overflow: hidden;
+  background: var(--ap-surface-solid);
+  border: 1px solid var(--ap-border);
+}
+
+.acta-modal-dialog.glass-card:hover {
+  transform: none !important;
 }
 
 .acta-modal-toolbar {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
+  align-items: center;
   gap: 1rem;
-  padding: 1.1rem 1.25rem;
+  flex-shrink: 0;
+  padding: 0.85rem 1.25rem;
   border-bottom: 1px solid var(--ap-border);
   background: rgba(0, 0, 0, 0.25);
 }
 
-.acta-modal-body {
-  flex: 1 1 auto;
+.acta-modal-scroll {
+  flex: 1 1 0;
+  min-height: 0;
+  overflow-x: hidden;
   overflow-y: auto;
-  padding: 1.25rem 1.35rem 2rem;
+  overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
+  scrollbar-gutter: stable;
+}
+
+.acta-modal-scroll::-webkit-scrollbar {
+  width: 12px;
+}
+
+.acta-modal-scroll::-webkit-scrollbar-thumb {
+  background: rgba(108, 140, 255, 0.5);
+  border-radius: 999px;
+  border: 2px solid rgba(0, 0, 0, 0.2);
+}
+
+.acta-modal-stats {
+  flex-shrink: 0;
+}
+
+.acta-modal-body {
+  overflow: visible;
+  padding: 0.75rem 1.25rem 2rem;
+}
+
+.acta-scroll-hint {
+  margin: 0 0 1rem;
+  padding: 0.45rem 0.75rem;
+  border-radius: 8px;
+  background: rgba(108, 140, 255, 0.12);
+  color: #dbe4ff;
+  text-align: center;
 }
 
 .acta-modal-footer {
@@ -1072,6 +1124,7 @@ body.acta-modal-open {
   flex-wrap: wrap;
   justify-content: flex-end;
   gap: 0.75rem;
+  flex-shrink: 0;
   padding: 1rem 1.25rem;
   border-top: 1px solid var(--ap-border);
   background: rgba(0, 0, 0, 0.28);
@@ -1281,6 +1334,11 @@ body.acta-modal-open {
 
 .acta-section-panel {
   padding: 0 0.25rem 1rem;
+  overflow: visible;
+}
+
+.acta-section-panel.d-none {
+  display: none !important;
 }
 
 .acta-item {
@@ -1328,6 +1386,7 @@ body.acta-modal-open {
 }
 
 .acta-grade {
+  position: relative;
   cursor: pointer;
   margin: 0;
   flex: 1 1 7.5rem;
@@ -1336,6 +1395,14 @@ body.acta-modal-open {
 
 .acta-grade input {
   position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
   opacity: 0;
   pointer-events: none;
 }
