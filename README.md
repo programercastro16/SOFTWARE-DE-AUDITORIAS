@@ -132,15 +132,18 @@ Si la base está vacía, en desarrollo se crea un admin automáticamente (`appse
 | Correo | `admin@local.dev` |
 | Contraseña | `Admin123!` |
 
-### Importar más usuarios (opcional)
+### Usuarios de desarrollo (sin Postman)
 
-Copia el archivo de ejemplo y edítalo con tus datos:
+En `AuditPlatform.API/appsettings.Development.json`, sección `DevSeed:Users`, se crean o actualizan usuarios de desarrollo al iniciar la API (`SyncPasswords` restablece la clave si el correo ya existe).
 
-```powershell
-copy AuditPlatform.API\postman-users.import.sample.json AuditPlatform.API\postman-users.json
-```
+| Rol | Correo | Contraseña |
+|-----|--------|------------|
+| ADMIN | `admin@local.dev` | `Admin123!` |
+| AUDITOR | `manuelaj1@auditora.com` | `Auditor123!` |
+| AUDITOR | `emanuelb2@auditor.com` | `Auditor123!` |
+| AUDITOR | `carlosd3@auditor.com` | `Auditor123!` |
 
-Edita `postman-users.json` con correos, contraseñas y roles (`ADMIN`, `AUDITOR`, `CLIENTE`). Al reiniciar la API, los usuarios nuevos se importan si el correo no existe ya.
+Para cambiar el admin de desarrollo, edita `DevSeed:Users` y reinicia la API. Si quieres empezar de cero, borra `AuditPlatform.API/backend.db` y vuelve a arrancar.
 
 ---
 

@@ -1,0 +1,272 @@
+{
+  "info": {
+    "_postman_id": "auditplatform-api-collection",
+    "name": "AuditPlatform API",
+    "description": "Importa esta colección y el entorno *AuditPlatform Local*. Arranca la API en http://localhost:5141, selecciona el entorno, ejecuta **0. Login Admin** y luego crea usuarios con **POST Crear usuario**.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "api_base",
+      "value": "http://localhost:5141"
+    }
+  ],
+  "item": [
+    {
+      "name": "0. Auth",
+      "item": [
+        {
+          "name": "Login Admin (guarda token)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const json = pm.response.json();",
+                  "    pm.environment.set('token', json.token);",
+                  "    console.log('Token guardado en variable token');",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@local.dev\",\n  \"password\": \"Admin123!\"\n}"
+            },
+            "url": "{{api_base}}/auth/login",
+            "description": "Ejecuta primero. Si usas otro admin, cambia email y password. El token se guarda solo en el entorno."
+          }
+        },
+        {
+          "name": "Register Admin (solo si no hay admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Thomas Castro\",\n  \"email\": \"thomas.admin@demo.com\",\n  \"password\": \"Admin123!\"\n}"
+            },
+            "url": "{{api_base}}/auth/register-admin",
+            "description": "Solo cuando la base está vacía y no existe admin@local.dev. Luego usa Login."
+          }
+        },
+        {
+          "name": "GET Listar todos los usuarios",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": "{{api_base}}/auth/users",
+            "description": "Requiere rol ADMIN y token del login."
+          }
+        },
+        {
+          "name": "GET Listar auditores",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": "{{api_base}}/auth/auditors"
+          }
+        }
+      ]
+    },
+    {
+      "name": "1. Crear usuarios (ADMIN)",
+      "item": [
+        {
+          "name": "POST Admin Thomas",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Thomas Castro\",\n  \"email\": \"thomas.admin@demo.com\",\n  \"password\": \"Admin123!\",\n  \"role\": \"ADMIN\"\n}"
+            },
+            "url": "{{api_base}}/auth/users",
+            "description": "Cambia email y password. Si el correo ya existe, verás error 400."
+          }
+        },
+        {
+          "name": "POST Manuela Auditora",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Manuela Auditora\",\n  \"email\": \"manuela.auditor@demo.com\",\n  \"password\": \"Auditor123!\",\n  \"role\": \"AUDITOR\"\n}"
+            },
+            "url": "{{api_base}}/auth/users"
+          }
+        },
+        {
+          "name": "POST Emanuel Auditor",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Emanuel Auditor\",\n  \"email\": \"emanuel.auditor@demo.com\",\n  \"password\": \"Auditor123!\",\n  \"role\": \"AUDITOR\"\n}"
+            },
+            "url": "{{api_base}}/auth/users"
+          }
+        },
+        {
+          "name": "POST Carlos Auditor",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Carlos Auditor\",\n  \"email\": \"carlos.auditor@demo.com\",\n  \"password\": \"Auditor123!\",\n  \"role\": \"AUDITOR\"\n}"
+            },
+            "url": "{{api_base}}/auth/users"
+          }
+        },
+        {
+          "name": "POST Cliente ejemplo",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Cliente demo\",\n  \"email\": \"cliente@demo.com\",\n  \"password\": \"Cliente123!\",\n  \"role\": \"CLIENTE\"\n}"
+            },
+            "url": "{{api_base}}/auth/users"
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Login por usuario (probar)",
+      "item": [
+        {
+          "name": "Login Manuela",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"manuela.auditor@demo.com\",\n  \"password\": \"Auditor123!\"\n}"
+            },
+            "url": "{{api_base}}/auth/login"
+          }
+        }
+      ]
+    }
+  ]
+}

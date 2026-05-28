@@ -1,0 +1,116 @@
+﻿P45 | . | style= | draw=False | Introducción
+P46 | . | style= | draw=False | Contexto del Proyecto
+P47 | . | style= | draw=False | Definiciones, Acrónimos y Abreviaturas
+P48 | . | style= | draw=False | Alcance y objetivos del sistema
+P49 | . | style= | draw=False | Definición del Alcance
+P50 | . | style= | draw=False | Objetivo General y Específicos del Sistema
+P51 | . | style= | draw=False | Definición del problema
+P52 | . | style= | draw=False | Descripción del problema
+P53 | . | style= | draw=False | Usuarios y stakeholders (No olvidar el mapa de stakeholders)
+P54 | . | style= | draw=False | Técnicas de elicitación de requisitos y definición gráfica
+P55 | . | style= | draw=False | Modelo Verbal Problema
+P56 | . | style= | draw=False | Diagrama de Causa-Efecto
+P57 | . | style= | draw=False | Impact Mapping
+P58 | . | style= | draw=False | Modelado de procesos con BPMN
+P59 | . | style= | draw=False | Modelo de Dominio
+P60 | . | style= | draw=False | Mapa de Empatía (por cada uno de los roles)
+P61 | . | style= | draw=False | Product backlog y sprints en la herramienta
+P62 | . | style= | draw=False | User Story Mapping
+P63 | . | style= | draw=False | Creación de casos de uso narrativos o historias de usuario.
+P64 | . | style= | draw=False | Diagrama de clases.
+P65 | . | style= | draw=False | Criterios de aceptación
+P66 | . | style= | draw=False | Modelo entidad relación y el modelo relacional de la base de datos
+P67 | . | style= | draw=False | Prototipo Figma
+P68 | . | style= | draw=False | Mapa de navegación
+P69 | . | style= | draw=False | Referencias
+P87 | . | style= | draw=False | Introducción
+P89 | . | style= | draw=False | Contexto del Proyecto
+P91 | . | style= | draw=False | Definiciones, Acrónimos y Abreviaturas
+P96 | . | style= | draw=False | Alcance y objetivos del sistema
+P98 | . | style= | draw=False | Definicion del Alcance
+P101 | . | style= | draw=False | Objetivo General y Específicos del Sistema
+P104 | . | style= | draw=False | Identificar y documentar los procesos de negocio críticos asociados al registro, búsqueda, matching, agendamiento y evaluación de sesiones.
+P105 | . | style= | draw=False | Definir las entidades del dominio, sus atributos y relaciones para sustentar la arquitectura lógica del sistema.
+P106 | . | style= | draw=False | Establecer un conjunto mínimo de funcionalidades que permitan validar la propuesta de valor del MVP.
+P107 | . | style= | draw=False | Promover mecanismos de confianza mediante reputación, calificaciones, visibilidad de habilidades y formalización de sesiones.
+P108 | . | style= | draw=False | Reducir la dependencia de modelos de mentoría pagos mediante un esquema de intercambio de tiempo entre pares.
+P110 | . | style= | draw=False | Definición del problema
+P113 | . | style= | draw=False | Descripción del problema
+P116 | . | style= | draw=False | Usuarios y stakeholders (No olvidar el mapa de stakeholders)
+P120 | . | style= | draw=False | Técnicas de elicitación de requisitos y definición gráfica
+P123 | . | style= | draw=False | Modelo Verbal Problema
+P126 | . | style= | draw=False | Diagrama de Causa-Efecto
+P128 | . | style= | draw=False | Costo: Se identifica que las tutorías privadas tienen precios prohibitivos para la mayoría de estudiantes, sumado a la falta de recursos económicos personales.
+P129 | . | style= | draw=False | Tiempo: La rigidez de los horarios académicos/laborales y la falta de una estructura organizada en las comunidades actuales impiden la sincronía entre quien sabe y quien quiere aprender.
+P130 | . | style= | draw=False | Metodología: Existe una saturación de contenido pasivo (cursos grabados) que no permite resolver dudas puntuales, generando frustración por la falta de retroalimentación en tiempo real.
+P131 | . | style= | draw=False | Entorno: El aislamiento del estudiante y la carencia de redes de contacto locales limitan las oportunidades de crecimiento colaborativo.
+P137 | . | style= | draw=False | Impact Mapping
+P139 | . | style= | draw=False | Meta (Goal): Consolidar una red colaborativa de intercambio de conocimiento técnico multidisciplinar
+P140 | . | style= | draw=False | Actores: * Estudiantes de Áreas Técnicas: Buscan resolver bloqueos específicos en sus rutas de aprendizaje.
+P141 | . | style= | draw=False | Especialistas y Mentores: Usuarios con dominio en una técnica que desean expandir su red o aprender habilidades complementarias.
+P142 | . | style= | draw=False | Administradores: Velan por la integridad de la comunidad y la correcta categorización de las habilidades.
+P143 | . | style= | draw=False | Impactos: * Democratizar el acceso al saber experto sin barreras económicas.
+P144 | . | style= | draw=False | Optimizar el tiempo de aprendizaje mediante la resolución de dudas en tiempo real con un par humano.
+P145 | . | style= | draw=False | Validar competencias a través de la reputación otorgada por la comunidad.
+P146 | . | style= | draw=False | Entregables (Software): * Módulo de categorización multitécnica (etiquetas para software, diseño, marketing, etc.).
+P147 | . | style= | draw=False | Sistema de agendamiento flexible según la zona horaria y disponibilidad.
+P148 | . | style= | draw=False | Panel de feedback y valoración de la experiencia pedagógica.
+P158 | . | style= | draw=False | Modelado de procesos con BPMN
+P165 | . | style= | draw=False | [Inicio] El usuario accede a la página de registro de DevCollab.
+P166 | . | style= | draw=False | El sistema presenta el formulario de registro (nombre, correo, contraseña, rol inicial).
+P167 | . | style= | draw=False | [Gateway Exclusivo] ¿Los datos ingresados son válidos y el correo no está registrado?
+P168 | . | style= | draw=False | Sí: El sistema crea la cuenta y envía correo de verificación.
+P169 | . | style= | draw=False | No: El sistema muestra mensaje de error y solicita corrección.
+P170 | . | style= | draw=False | El usuario verifica su correo electrónico haciendo clic en el enlace recibido.
+P171 | . | style= | draw=False | El sistema habilita la cuenta y redirige al asistente de configuración de perfil.
+P172 | . | style= | draw=False | El usuario completa su perfil: habilidades que enseña (tags de Mentor) y habilidades que desea aprender (tags de Aprendiz).
+P173 | . | style= | draw=False | [Fin] El perfil queda activo y el usuario es redirigido al Dashboard principal.
+P176 |     | style= | draw=False | Figura 1. Diagrama BPMN – Proceso de Registro y Autenticación de Usuario en DevCollab
+P184 | . | style= | draw=False | [Inicio] El Aprendiz ingresa un tag de habilidad en el motor de búsqueda.
+P185 | . | style= | draw=False | El sistema ejecuta el algoritmo de matching y retorna lista de Mentores compatibles (ordenados por calificación y disponibilidad).
+P186 | . | style= | draw=False | [Gateway Exclusivo] ¿Hay Mentores disponibles con el tag solicitado?
+P189 | . | style= | draw=False | El Aprendiz envía una solicitud de sesión con fecha, hora y descripción del tema.
+P190 | . | style= | draw=False | El sistema notifica al Mentor vía correo y notificación en plataforma.
+P191 | . | style= | draw=False | [Gateway Exclusivo] ¿El Mentor acepta la solicitud?
+P194 | . | style= | draw=False | El sistema programa recordatorio automático 24 horas antes de la sesión para ambos usuarios.
+P195 | . | style= | draw=False | [Fin] La sesión queda agendada y confirmada en el calendario de ambos participantes.
+P199 |     | style= | draw=False | Figura 2. Diagrama BPMN – Proceso de Búsqueda, Matching y Agendamiento de Sesión en DevCollab
+P204 | . | style= | draw=False | [Inicio Temporizador] El sistema detecta que la hora programada de la sesión ha concluido.
+P205 | . | style= | draw=False | El sistema envía a ambos usuarios (Aprendiz y Mentor) un formulario de calificación (1 a 5 estrellas + comentario opcional).
+P206 | . | style= | draw=False | [Gateway Paralelo] Ambas calificaciones se recopilan de forma independiente (el proceso no bloquea al esperar a ambas; se acepta calificación parcial).
+P207 | . | style= | draw=False | El sistema actualiza el promedio de calificación de cada perfil con la nueva evaluación recibida.
+P208 | . | style= | draw=False | El sistema acredita 1 hora al balance del Mentor (modelo 1 a 1 de horas).
+P209 | . | style= | draw=False | [Fin] La sesión queda marcada como “Completada” en el historial de ambos usuarios.
+P211 |     | style= | draw=False | Figura 3. Diagrama BPMN – Proceso de Calificación y Reseña Post-Sesión en DevCollab
+P213 | . | style= | draw=False | Modelo de Dominio
+P229 | . | style= | draw=False | Perfil – Tag: Un Perfil puede tener muchos Tags y un Tag puede estar asociado a muchos Perfiles. Esta relación muchos a muchos se diferencia por el rol (Mentor o Aprendiz).
+P230 | . | style= | draw=False | Usuario – SolicitudSesion: Un Usuario puede enviar muchas SolicitudesSesion (como Aprendiz) y recibir muchas (como Mentor). Cardinalidad 1:N desde cada extremo.
+P233 | . | style= | draw=False | Usuario – Notificacion: Un Usuario puede recibir muchas Notificaciones. Una Notificación pertenece a exactamente un Usuario (1:N).
+P236 | . | style= | draw=False | La clase Usuario es el eje del modelo, directamente relacionada con todas las demás entidades operacionales.
+P237 | . | style= | draw=False | La clase Perfil extiende al Usuario con datos públicos y es el punto de entrada para el algoritmo de matching a través de sus Tags.
+P238 | . | style= | draw=False | El flujo transaccional del intercambio se modela como: SolicitudSesion → Sesion → Calificacion, reflejando las tres etapas del ciclo de vida de una interacción.
+P244 | . | style= | draw=False | Mapa de Empatía (por cada uno de los roles)
+P252 | . | style= | draw=False | Product backlog y sprints en la herramienta
+P254 | . | style= | draw=True | (Detalle): "Desglose de criterios de aceptación para asegurar la calidad de cada funcionalidad."
+P264 | . | style= | draw=False | User Story Mapping
+P279 | . | style= | draw=False | Creación de casos de uso narrativos o historias de usuario.
+P284 | . | style= | draw=False | Creación de casos de uso narrativos o historias de usuario
+P298 | . | style= | draw=False | Diagrama de clases.
+P305 | . | style= | draw=False | Criterios de aceptación
+P309 | . | style= | draw=False | Modelo entidad relación y el modelo relacional de la base de datos
+P323 | . | style= | draw=False | Prototipo Figma
+P327 | . | style= | draw=False | Mapa de navegación
+P331 | . | style= | draw=False | Referencias
+P332 | . | style= | draw=False | Pressman, R. S. (2014). Ingeniería del Software: Un enfoque práctico (7.9 ed.). McGraw-Hill Education.
+P333 | . | style= | draw=False | Sommerville, I. (2011). Ingeniería de Software (9.9 ed.). Pearson Educación.
+P334 | . | style= | draw=False | IEEE Std 830-1998. (1998). IEEE Recommended Practice for Software Requirements Specifications. IEEE Computer Society.
+P335 | . | style= | draw=False | MinTIC Colombia. (2023). Informe del sector TIC en Colombia 2023. Ministerio de Tecnologías de la Información y las Comunicaciones.
+P336 | . | style= | draw=False | ADPList. (2024). About ADPList – Free mentorship for everyone.
+P337 | . | style= | draw=False | Object Management Group (OMG). (2013). Business Process Model and Notation (BPMN) Version 2.0.2.
+P338 | . | style= | draw=False | Object Management Group (OMG). (2017). Unified Modeling Language (UML) Version 2.5.1.
+P346 | . | style= | draw=False | https://drive.google.com/drive/folders/1ITUIyMJNKgdxBRhT3qD23HZTBbcvv4ke?usp=sharing(Diagrama BPMN – Proceso de Registro y Autenticación de Usuario en DevCollab)
+P348 | . | style= | draw=False | https://drive.google.com/file/d/10VRZTBNREeOjPfpDhKCazp-DHlV8iysa/view?usp=sharing(Diagrama BPMN – Proceso de Búsqueda, Matching y Agendamiento de Sesión en DevCollab)
+P350 | . | style= | draw=False | https://drive.google.com/file/d/1TXZwCGn-gNRubBz1J9w8bXcNgSfCRUoC/view?usp=sharing(Diagrama BPMN – Proceso de Calificación y Reseña Post-Sesión en DevCollab)
+P352 | . | style= | draw=False | https://drive.google.com/file/d/1di-AoTMw0YE7jEI4k38ikPyOI_0Qvk6c/view?usp=sharing(Diagrama de Clases del Dominio – DevCollab MVP)
+P354 | . | style= | draw=False | https://drive.google.com/file/d/1ESQf9nH5YqI1OKq-LkWzFgYb7gorjuxe/view?usp=drive_link (Mapa de Navegacion=
+

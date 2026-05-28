@@ -1,0 +1,17 @@
+﻿1. Introducción
+1.1. Contexto del Proyecto
+1.2. Definiciones, Acrónimos y Abreviaturas
+2. Alcance y objetivos del sistema
+2.1. Definicion del Alcance
+2.2. Objetivo General y Específicos del Sistema
+3. Definición del problema
+3.1. Descripción del problema
+3.2. Usuarios y stakeholders (No olvidar el mapa de stakeholders)
+4. Técnicas de elicitación de requisitos y definición gráfica
+5. Modelo Verbal Problema
+6. Diagrama de Causa-Efecto
+8. Modelado de procesos con BPMN
+10. Mapa de Empatía (por cada uno de los roles)
+11. Product backlog y sprints en la herramienta
+12. User Story Mapping
+13. Creación de casos de uso narrativos o historias de usuario.

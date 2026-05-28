@@ -1,0 +1,36 @@
+﻿REVISIÓN DE REFERENCIAS (APA 7)
+================================
+
+[1] ADPList. (2024). About ADPList – Free mentorship for everyone.
+
+  Observaciones: Formato general aceptable; verificar orden alfabético y cursivas.
+
+[2] IEEE Std 830-1998. (1998). IEEE Recommended Practice for Software Requirements Specifications. IEEE Computer Society.
+
+  Observaciones: Formato general aceptable; verificar orden alfabético y cursivas.
+
+[3] MinTIC Colombia. (2023). Informe del sector TIC en Colombia 2023. Ministerio de Tecnologías de la Información y las Comunicaciones.
+
+  Observaciones: Formato general aceptable; verificar orden alfabético y cursivas.
+
+[4] Object Management Group (OMG). (2013). Business Process Model and Notation (BPMN) Version 2.0.2.
+
+  Observaciones: Formato general aceptable; verificar orden alfabético y cursivas.
+
+[5] Object Management Group (OMG). (2017). Unified Modeling Language (UML) Version 2.5.1.
+
+  Observaciones: Formato general aceptable; verificar orden alfabético y cursivas.
+
+[6] Pressman, R. S. (2014). Ingeniería del Software: Un enfoque práctico (7.9 ed.). McGraw-Hill Education.
+
+  Observaciones: Formato general aceptable; verificar orden alfabético y cursivas.
+
+[7] Sommerville, I. (2011). Ingeniería de Software (9.9 ed.). Pearson Educación.
+
+  Observaciones: Formato general aceptable; verificar orden alfabético y cursivas.
+
+RECOMENDACIONES APA 7:
+- Orden alfabético por apellido del primer autor.
+- Sangría francesa de 0.5 pulgadas.
+- Títulos de libros/revistas en cursiva.
+- DOI/URL sin punto final tras el enlace.
