@@ -1,4 +1,4 @@
-# AuditPlatform — Proyecto final de Programación de Software
+# AuditPlatform 
 
 **AuditPlatform** es una aplicación web para gestionar **auditorías internas** de establecimientos (por ejemplo, bares o restaurantes). Permite crear visitas, asignar auditores, calificar un checklist de aspectos, firmar el acta y descargar un informe en PDF.
 
